@@ -39,6 +39,13 @@ define execute_mpi
  $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/keras_mnist_advanced.py"
 endef
 
+define execute
+ nvidia-docker run -it \
+ $(setup_volumes) \
+ $(setup_environment) \
+ $(1) bash
+endef
+
 help:
 	echo "$$PROJECT_HELP_MSG" | less
 
@@ -50,6 +57,9 @@ notebook:
 
 run-mpi:
 	$(call execute_mpi, $(name_prefix)/horovod)
+
+run:
+	$(call execute, $(name_prefix)/horovod)
 
 push:
 	docker push $(name_prefix)/horovod
