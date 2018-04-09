@@ -6,7 +6,7 @@ Usage:
 endef
 export PROJECT_HELP_MSG
 
-DATA_DIR:=/mnt/
+DATA_DIR:=/mnt
 PWD:=$(shell pwd)
 PROJ_ROOT:=$(shell dirname $(PWD))
 setup_volumes:=-v $(PROJ_ROOT):/mnt/script \
