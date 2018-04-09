@@ -11,8 +11,8 @@ PWD:=$(shell pwd)
 PROJ_ROOT:=$(shell dirname $(PWD))
 setup_volumes:=-v $(PROJ_ROOT):/mnt/script \
 	-v $(DATA_DIR):/mnt/input \
-	-v $(PWD)/temp/model:/mnt/model \
-	-v $(PWD)/temp/output:/mnt/output
+	-v $(DATA_DIR)/temp/model:/mnt/model \
+	-v $(DATA_DIR)/temp/output:/mnt/output
 
 
 setup_environment:=--env AZ_BATCHAI_INPUT_DATASET='/mnt/input' \
