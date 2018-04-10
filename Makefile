@@ -36,6 +36,7 @@ define execute_mpi
  nvidia-docker run -it \
  $(setup_volumes) \
  $(setup_environment) \
+ --privileged \
  $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/DistributedDeepLearning/ImagenetEstimatorHorovod.py"
 endef
 

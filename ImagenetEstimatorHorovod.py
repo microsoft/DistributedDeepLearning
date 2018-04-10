@@ -11,14 +11,14 @@ import horovod.tensorflow as hvd
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-tf.logging.set_verbosity(tf.logging.INFO)
+# tf.logging.set_verbosity(tf.logging.INFO)
 
 tf.__version__
 
 WIDTH = 224
 HEIGHT = 224
 CHANNELS = 3
-LR = 0.0001
+LR = 0.001
 EPOCHS = 5
 BATCHSIZE = 32
 IMAGENET_RGB_MEAN_CAFFE = np.array([123.68, 116.78, 103.94], dtype=np.float32)
@@ -142,7 +142,10 @@ def model_fn(features, labels, mode, params):
             loss=loss)
 
     # Define the optimizer for improving the neural network.
-    optimizer = tf.train.AdamOptimizer(learning_rate=params["learning_rate"])
+    optimizer = tf.train.MomentumOptimizer(learning_rate=params["learning_rate"] * hvd.size(), momentum=0.9)
+
+     # Horovod: add Horovod Distributed Optimizer.
+    optimizer = hvd.DistributedOptimizer(optimizer)
 
     # Get the TensorFlow op for doing a single optimization step.
     train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
@@ -202,13 +205,13 @@ def main():
     config.gpu_options.allow_growth = True
     config.gpu_options.visible_device_list = str(hvd.local_rank())
 
-    rfig = tf.estimator.RunConfig(save_checkpoints_steps=1000, session_config=config)
+    rfig = tf.estimator.RunConfig(save_checkpoints_steps=10000, session_config=config)
 
     # Horovod: save checkpoints only on worker 0 to prevent other workers from
     # corrupting them.
     model_dir = os.getenv('AZ_BATCHAI_OUTPUT_MODEL') if hvd.rank() == 0 else None
 
-    params = {"learning_rate": 1e-4}
+    params = {"learning_rate": LR}
     # rfig = tf.estimator.RunConfig(save_checkpoints_steps=1000)
     logger.info('Creating estimator with params: {}'.format(params))
     model = tf.estimator.Estimator(model_fn=model_fn,
@@ -220,7 +223,7 @@ def main():
     logger.info('{} {}'.format(hvd.local_rank(), hvd.size()))
     for epoch in range(EPOCHS):
         logger.info('Running epoch {}...'.format(epoch))
-        model.train(input_fn=train_input_fn, steps=10, hooks=[bcast_hook])  # data_length//batch_size
+        model.train(input_fn=train_input_fn, steps=10000, hooks=[bcast_hook])  # data_length//batch_size
         logger.info('Validation...')
         model.evaluate(input_fn=validation_input_fn, steps=10)  # validation_length//batch_size
 
