@@ -6,23 +6,21 @@ Usage:
 endef
 export PROJECT_HELP_MSG
 
-DATA_DIR:=/mnt
+DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
-PROJ_ROOT:=$(shell dirname $(PWD))
-setup_volumes:=-v $(PROJ_ROOT):/mnt/script \
+#PROJ_ROOT:=$(shell dirname $(PWD))
+setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
 	-v $(DATA_DIR):/mnt/input \
 	-v $(DATA_DIR)/temp/model:/mnt/model \
 	-v $(DATA_DIR)/temp/output:/mnt/output
 
 
-setup_environment:=--env AZ_BATCHAI_INPUT_DATASET='/mnt/input' \
-	--env AZ_BATCHAI_INPUT_SCRIPT='/mnt/script' \
+setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
+	--env AZ_BATCHAI_INPUT_TEST='/mnt/input' \
 	--env AZ_BATCHAI_OUTPUT_MODEL='/mnt/model' \
-	--env AZ_BATCHAI_MOUNT_ROOT='/mnt/output'
-
+	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output'
 
 name_prefix:=masalvar
-
 
 define serve_notebbook
  nvidia-docker run -it \
@@ -36,22 +34,35 @@ define execute_mpi
  nvidia-docker run -it \
  $(setup_volumes) \
  $(setup_environment) \
+ --env DISTRIBUTED='True' \
  --privileged \
- $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/DistributedDeepLearning/ImagenetEstimatorHorovod.py"
+ $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetEstimatorHorovod.py"
+endef
+
+define execute_mpi_intel
+ nvidia-docker run -it \
+ $(setup_volumes) \
+ $(setup_environment) \
+ --env DISTRIBUTED='True' \
+ --privileged \
+ $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetEstimatorHorovod.py"
 endef
 
 define execute
  nvidia-docker run -it \
  $(setup_volumes) \
  $(setup_environment) \
- $(1) bash
+ $(1) bash -c "python /mnt/script/ImagenetEstimatorHorovod.py"
 endef
 
 help:
 	echo "$$PROJECT_HELP_MSG" | less
 
 build:
-	docker build -t $(name_prefix)/horovod horovod
+	docker build -t $(name_prefix)/horovod Docker/horovod
+
+build-intel:
+	docker build -t $(name_prefix)/horovod-intel Docker/horovod-intel
 
 notebook:
 	$(call serve_notebbook, $(name_prefix)/horovod)
@@ -59,11 +70,17 @@ notebook:
 run-mpi:
 	$(call execute_mpi, $(name_prefix)/horovod)
 
+run-mpi-intel:
+	$(call execute_mpi_intel, $(name_prefix)/horovod-intel)
+
 run:
 	$(call execute, $(name_prefix)/horovod)
 
 push:
 	docker push $(name_prefix)/horovod
+
+push-intel:
+	docker push $(name_prefix)/horovod-intel
 
 
 .PHONY: help build push
