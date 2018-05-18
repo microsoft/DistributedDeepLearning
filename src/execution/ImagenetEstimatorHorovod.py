@@ -8,6 +8,9 @@ AZ_BATCHAI_OUTPUT_MODEL
 AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
+
+logging.basicConfig(level=logging.INFO)
+
 import os
 from os import path
 
@@ -42,7 +45,7 @@ _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
 
-logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 resnet_v1_50 = nets.resnet_v1.resnet_v1_50
@@ -275,7 +278,7 @@ def main():
     with Timer(output=logger.info, prefix="Training"):
         logger.info('Training...')
         model.train(input_fn=train_input_fn,
-                    steps=_EPOCHS * train_input_fn.length // _BATCHSIZE,
+                    steps=_EPOCHS * train_input_fn.length // (_BATCHSIZE*hvd.size()),
                     hooks=hooks)
 
     if _is_master():
