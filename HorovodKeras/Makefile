@@ -1,8 +1,6 @@
 define PROJECT_HELP_MSG
 Usage:
     make help                   show this message
-    make cntk                   make cntk BAIT image
-    make push-cntk              push cntk BAIT image to docker hub
 endef
 export PROJECT_HELP_MSG
 
@@ -36,7 +34,7 @@ define execute_mpi
  $(setup_environment) \
  --env DISTRIBUTED='True' \
  --privileged \
- $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetEstimatorHorovod.py"
+ $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetKerasHorovod.py"
 endef
 
 define execute_mpi_intel
@@ -45,42 +43,42 @@ define execute_mpi_intel
  $(setup_environment) \
  --env DISTRIBUTED='True' \
  --privileged \
- $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetEstimatorHorovod.py"
+ $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetKerasHorovod.py"
 endef
 
 define execute
  nvidia-docker run -it \
  $(setup_volumes) \
  $(setup_environment) \
- $(1) bash -c "python /mnt/script/ImagenetEstimatorHorovod.py"
+ $(1) bash -c "python /mnt/script/ImagenetKerasHorovod.py"
 endef
 
 help:
 	echo "$$PROJECT_HELP_MSG" | less
 
 build:
-	docker build -t $(name_prefix)/horovod Docker/horovod
+	docker build -t $(name_prefix)/horovod-keras Docker/horovod
 
 build-intel:
-	docker build -t $(name_prefix)/horovod-intel Docker/horovod-intel
+	docker build -t $(name_prefix)/horovod-intel-keras Docker/horovod-intel
 
 notebook:
-	$(call serve_notebbook, $(name_prefix)/horovod)
+	$(call serve_notebbook, $(name_prefix)/horovod-keras)
 
 run-mpi:
-	$(call execute_mpi, $(name_prefix)/horovod)
+	$(call execute_mpi, $(name_prefix)/horovod-keras)
 
 run-mpi-intel:
-	$(call execute_mpi_intel, $(name_prefix)/horovod-intel)
+	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-keras)
 
 run:
-	$(call execute, $(name_prefix)/horovod)
+	$(call execute, $(name_prefix)/horovod-keras)
 
 push:
-	docker push $(name_prefix)/horovod
+	docker push $(name_prefix)/horovod-keras
 
 push-intel:
-	docker push $(name_prefix)/horovod-intel
+	docker push $(name_prefix)/horovod-intel-keras
 
 
 .PHONY: help build push
