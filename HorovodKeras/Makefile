@@ -13,8 +13,8 @@ setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
 	-v $(DATA_DIR)/temp/output:/mnt/output
 
 
-setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
-	--env AZ_BATCHAI_INPUT_TEST='/mnt/input' \
+setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input/train' \
+	--env AZ_BATCHAI_INPUT_TEST='/mnt/input/test' \
 	--env AZ_BATCHAI_OUTPUT_MODEL='/mnt/model' \
 	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output'
 

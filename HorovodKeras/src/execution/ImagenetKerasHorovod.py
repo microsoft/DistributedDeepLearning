@@ -176,7 +176,7 @@ def main():
 
     train_iter = _training_data_iterator_from()
 
-    test_iter = _validation_data_iterator_from()
+    # test_iter = _validation_data_iterator_from()
 
     model = _create_model()
 
@@ -222,13 +222,13 @@ def main():
                             validation_data=test_iter,
                             validation_steps=3 * len(test_iter) // hvd.size())
 
-    # Evaluate the model on the full data set.
-    with Timer(output=logger.info, prefix="Testing"):
-        logger.info('Testing...')
-        score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=4))
-        if verbose:
-            print('Test loss:', score[0])
-        print('Test accuracy:', score[1])
+    # # Evaluate the model on the full data set.
+    # with Timer(output=logger.info, prefix="Testing"):
+    #     logger.info('Testing...')
+    #     score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=4))
+    #     if verbose:
+    #         print('Test loss:', score[0])
+    #     print('Test accuracy:', score[1])
 
 
 if __name__ == '__main__':
