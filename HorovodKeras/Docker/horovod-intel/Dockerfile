@@ -48,7 +48,7 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     rm get-pip.py
 
 # Install TensorFlow and Keras
-RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn keras
+RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn keras pillow
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \

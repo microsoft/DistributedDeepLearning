@@ -32,7 +32,7 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     rm get-pip.py
 
 # Install TensorFlow
-RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn keras
+RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn keras pillow
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi && \
