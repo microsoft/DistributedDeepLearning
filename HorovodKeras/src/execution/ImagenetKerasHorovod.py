@@ -168,7 +168,7 @@ def main():
         verbose = 1 if hvd.rank() == 0 else 0
 
     logger.info("Tensorflow version {}".format(tf.__version__))
-
+    K.set_session(tf.Session(config=_get_runconfig()))
 
     # Horovod: broadcast resume_from_epoch from rank 0 (which will have
     # checkpoints) to other ranks.
@@ -191,7 +191,7 @@ def main():
                   optimizer=opt,
                   metrics=['accuracy', 'top_k_categorical_accuracy'])
 
-    K.set_session(tf.Session(config=_get_runconfig()))
+
     model_dir = _get_model_dir()
     checkpoint_format = os.path.join(model_dir, 'checkpoint-{epoch}.h5')
 
