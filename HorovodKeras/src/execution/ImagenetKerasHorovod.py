@@ -219,9 +219,9 @@ def main():
                             epochs=_EPOCHS,
                             verbose=verbose,
                             workers=4,
-                            initial_epoch=resume_from_epoch,
-                            validation_data=test_iter,
-                            validation_steps=3 * len(test_iter) // hvd.size())
+                            initial_epoch=resume_from_epoch)
+                            # validation_data=test_iter,
+                            # validation_steps=3 * len(test_iter) // hvd.size())
 
     # # Evaluate the model on the full data set.
     # with Timer(output=logger.info, prefix="Testing"):
