@@ -119,7 +119,7 @@ def _get_model_dir(is_distributed=_DISTRIBUTED):
         return os.getenv('AZ_BATCHAI_OUTPUT_MODEL')
 
 
-def _get_hooks(is_distributed=_DISTRIBUTED):
+def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
     if is_distributed:
         logger.info('Rank: {} Cluster Size {}'.format(hvd.local_rank(), hvd.size()))
         return [
