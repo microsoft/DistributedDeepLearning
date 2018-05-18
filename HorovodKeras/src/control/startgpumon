@@ -1,0 +1,9 @@
+#!/bin/bash
+wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+bash ~/miniconda.sh -b -p $HOME/miniconda
+export PATH="$HOME/miniconda/bin:$PATH"
+source activate
+git clone https://github.com/msalvaris/gpu_monitor.git
+pip install -e gpu_monitor
+gpumon msdlvm.southcentralus.cloudapp.azure.com admin password --database baitgpu --series-name gpu --machine=$(hostname)
+
