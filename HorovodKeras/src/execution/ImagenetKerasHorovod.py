@@ -10,6 +10,7 @@ AZ_BATCHAI_JOB_TEMP_DIR
 import logging
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from timer import Timer
 
@@ -43,10 +44,10 @@ def _str_to_bool(in_str):
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 
 if _DISTRIBUTED:
-    import horovod.tensorflow as hvd
+    import horovod.keras as hvd
 
 
-logger = logging.getLogger(__name__)
+
 
 
 def _create_model():
