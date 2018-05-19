@@ -37,7 +37,6 @@ _EPOCHS = 1
 _BATCHSIZE = 16
 _RGB_MEAN = [0.485, 0.456, 0.406]
 _RGB_SD = [0.229, 0.224, 0.225]
-_BUFFER = 10
 _SEED=42
 
 # Settings from https://arxiv.org/abs/1706.02677.
@@ -174,8 +173,8 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
-    # # Autotune
-    # cudnn.benchmark = True
+    # Autotune
+    cudnn.benchmark = True
 
     logger.info("Loading model")
     # Load symbol
