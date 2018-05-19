@@ -151,6 +151,7 @@ def main():
 
     train_X, train_y, valid_X, valid_y = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), os.getenv('AZ_BATCHAI_INPUT_TEST'))
 
+    logger.info("Setting up loaders")
     train_dataset = ImageNet(
         train_X,
         train_y,
@@ -188,6 +189,7 @@ def main():
 
     criterion = nn.CrossEntropyLoss().cuda()
 
+    logger.info("Training ...")
     # Main training-loop
     for epoch in range(_EPOCHS):
         if _DISTRIBUTED:
