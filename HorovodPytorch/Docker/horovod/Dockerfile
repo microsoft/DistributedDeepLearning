@@ -31,8 +31,9 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     rm get-pip.py
 
-# Install TensorFlow
-RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn keras pillow
+# Install PyTorch
+RUN pip install http://download.pytorch.org/whl/cu90/torch-0.4.0-cp35-cp35m-linux_x86_64.whl && \
+	pip install --no-cache-dir torchvision h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn pillow
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi && \
