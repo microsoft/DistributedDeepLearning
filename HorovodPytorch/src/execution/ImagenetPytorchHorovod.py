@@ -122,7 +122,11 @@ def train(train_loader, model, criterion, optimizer, epoch):
     logger.info("Training ...")
     model.train()
     for i, (data, target) in enumerate(train_loader):
-        target = target.cuda(non_blocking=True)
+        print(type(i))
+        print(type(data))
+        print(type(target))
+        data, target = data.cuda(), target.cuda()
+        # target = target.cuda(non_blocking=True)
         optimizer.zero_grad()
         # compute output
         output = model(data)
