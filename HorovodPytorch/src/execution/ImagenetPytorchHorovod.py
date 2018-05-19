@@ -135,7 +135,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # compute gradient and do SGD step
         loss.backward()
         optimizer.step()
-        print(loss.data)
         if i % 100 == 0:
             msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
             logger.info(msg.format(epoch, t.elapsed, loss.data[0], i * len(data)))
@@ -196,7 +195,6 @@ def main():
         optimizer, named_parameters=model.named_parameters())
 
     criterion=None
-    logger.info("Training ...")
     # Main training-loop
     for epoch in range(_EPOCHS):
         with Timer(output=logger.info, prefix="Training"):
