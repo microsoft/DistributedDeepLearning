@@ -34,7 +34,7 @@ _HEIGHT = 224
 _CHANNELS = 3
 _LR = 0.001
 _EPOCHS = 1
-_BATCHSIZE = 16
+_BATCHSIZE = 32
 _RGB_MEAN = [0.485, 0.456, 0.406]
 _RGB_SD = [0.229, 0.224, 0.225]
 _BUFFER = 10
@@ -121,7 +121,8 @@ def _is_master(is_distributed=_DISTRIBUTED):
 
 def train(train_loader, model, criterion, optimizer, epoch):
     logger.info("Training ...")
-
+    t=Timer()
+    t.__enter__()
     for i, (data, target) in enumerate(train_loader):
         print(i)
         data, target = data.cuda(), target.cuda()
@@ -135,6 +136,10 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # compute gradient and do SGD step
         loss.backward()
         optimizer.step()
+        if i % 100 == 0:
+            msg = 'Train Epoch: {}   duration({}) {}  loss:{} total-samples: {}'
+            logger.info(msg.format(epoch, t.elapsed, loss.data[0], i * len(data)))
+            t.__enter__()
 
 
 def main():
@@ -194,8 +199,6 @@ def main():
     logger.info("Training ...")
     # Main training-loop
     for epoch in range(_EPOCHS):
-        # if _DISTRIBUTED:
-        # Train
         with Timer(output=logger.info, prefix="Training"):
             model.train()
             train_sampler.set_epoch(epoch)
