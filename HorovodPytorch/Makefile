@@ -34,7 +34,7 @@ define execute_mpi
  $(setup_environment) \
  --env DISTRIBUTED='True' \
  --privileged \
- $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetPytorchHorovod.py"
+ $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/MNISTPytorch.py"
 endef
 
 define execute_mpi_intel
