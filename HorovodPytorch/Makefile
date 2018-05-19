@@ -29,7 +29,7 @@ define serve_notebbook
 endef
 
 define execute_mpi
- nvidia-docker run -it \
+ nvidia-docker run --shm-size 8G -it \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
@@ -38,7 +38,7 @@ define execute_mpi
 endef
 
 define execute_mpi_intel
- nvidia-docker run -it \
+ nvidia-docker run --shm-size 8G -it \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
@@ -47,7 +47,7 @@ define execute_mpi_intel
 endef
 
 define execute
- nvidia-docker run -it \
+ nvidia-docker run --shm-size 8G -it \
  $(setup_volumes) \
  $(setup_environment) \
  $(1) bash -c "python /mnt/script/ImagenetPytorchHorovod.py"
