@@ -79,8 +79,8 @@ def _create_data_fn(train_path, test_path):
     train_X = train_df['filenames'].values
     validation_X = validation_df['filenames'].values
     # One-hot encoded labels for torch
-    train_labels = train_df[['num_id']].unique().values.ravel()
-    validation_labels = validation_df[['num_id']].unique().values.ravel()
+    train_labels = train_df[['num_id']].values.ravel()
+    validation_labels = validation_df[['num_id']].values.ravel()
     # Index starts from 0
     train_labels -= 1
     validation_labels -= 1
@@ -153,6 +153,7 @@ def main():
 
     print(train_X.shape)
     print(train_y.shape)
+    print(train_y[:10])
     logger.info("Setting up loaders")
     train_dataset = ImageNet(
         train_X,
