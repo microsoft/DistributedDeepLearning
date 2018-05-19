@@ -148,7 +148,7 @@ def main():
     torch.manual_seed(_SEED)
     torch.cuda.manual_seed(_SEED)
 
-    kwargs = {'num_workers': 1, 'pin_memory': True}
+
 
     normalize = transforms.Normalize(_RGB_MEAN, _RGB_SD)
 
@@ -167,6 +167,7 @@ def main():
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
 
+    kwargs = {'num_workers': 1, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
