@@ -151,6 +151,8 @@ def main():
 
     train_X, train_y, valid_X, valid_y = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), os.getenv('AZ_BATCHAI_INPUT_TEST'))
 
+    print(train_X.shape)
+    print(train_y.shape)
     logger.info("Setting up loaders")
     train_dataset = ImageNet(
         train_X,
