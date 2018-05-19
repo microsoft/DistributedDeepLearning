@@ -121,8 +121,9 @@ def _is_master(is_distributed=_DISTRIBUTED):
 
 def train(train_loader, model, criterion, optimizer, epoch):
     logger.info("Training ...")
-    model.train()
+
     for i, (data, target) in enumerate(train_loader):
+        print(i)
         data, target = data.cuda(), target.cuda()
         data, target = Variable(data), Variable(target)
         # target = target.cuda(non_blocking=True)
@@ -141,14 +142,12 @@ def main():
         # Horovod: initialize Horovod.
         logger.info("Runnin Distributed")
         hvd.init()
+        torch.manual_seed(_SEED)
         # Horovod: pin GPU to local rank.
         torch.cuda.set_device(hvd.local_rank())
+        torch.cuda.manual_seed(_SEED)
 
     logger.info("PyTorch version {}".format(torch.__version__))
-    torch.manual_seed(_SEED)
-    torch.cuda.manual_seed(_SEED)
-
-
 
     normalize = transforms.Normalize(_RGB_MEAN, _RGB_SD)
 
@@ -171,8 +170,8 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
-    # Autotune
-    cudnn.benchmark = True
+    # # Autotune
+    # cudnn.benchmark = True
 
     logger.info("Loading model")
     # Load symbol
@@ -195,10 +194,11 @@ def main():
     logger.info("Training ...")
     # Main training-loop
     for epoch in range(_EPOCHS):
-        if _DISTRIBUTED:
-            train_sampler.set_epoch(epoch)
+        # if _DISTRIBUTED:
         # Train
         with Timer(output=logger.info, prefix="Training"):
+            model.train()
+            train_sampler.set_epoch(epoch)
             train(train_loader, model, criterion, optimizer, epoch)
 
 
