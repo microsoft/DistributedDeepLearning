@@ -57,28 +57,28 @@ help:
 	echo "$$PROJECT_HELP_MSG" | less
 
 build:
-	docker build -t $(name_prefix)/horovod-keras Docker/horovod
+	docker build -t $(name_prefix)/horovod-pytorch Docker/horovod
 
 build-intel:
-	docker build -t $(name_prefix)/horovod-intel-keras Docker/horovod-intel
+	docker build -t $(name_prefix)/horovod-intel-pytorch Docker/horovod-intel
 
 notebook:
-	$(call serve_notebbook, $(name_prefix)/horovod-keras)
+	$(call serve_notebbook, $(name_prefix)/horovod-pytorch)
 
 run-mpi:
-	$(call execute_mpi, $(name_prefix)/horovod-keras)
+	$(call execute_mpi, $(name_prefix)/horovod-pytorch)
 
 run-mpi-intel:
-	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-keras)
+	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-pytorch)
 
 run:
-	$(call execute, $(name_prefix)/horovod-keras)
+	$(call execute, $(name_prefix)/horovod-pytorch)
 
 push:
-	docker push $(name_prefix)/horovod-keras
+	docker push $(name_prefix)/horovod-pytorch
 
 push-intel:
-	docker push $(name_prefix)/horovod-intel-keras
+	docker push $(name_prefix)/horovod-intel-pytorch
 
 
 .PHONY: help build push
