@@ -124,7 +124,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
     t=Timer()
     t.__enter__()
     for i, (data, target) in enumerate(train_loader):
-        print(i)
         data, target = data.cuda(), target.cuda()
         data, target = Variable(data), Variable(target)
         # target = target.cuda(non_blocking=True)
@@ -136,6 +135,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # compute gradient and do SGD step
         loss.backward()
         optimizer.step()
+        print(loss.data)
         if i % 100 == 0:
             msg = 'Train Epoch: {}   duration({}) {}  loss:{} total-samples: {}'
             logger.info(msg.format(epoch, t.elapsed, loss.data[0], i * len(data)))
