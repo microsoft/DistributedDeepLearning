@@ -26,7 +26,8 @@ import torchvision.models as models
 from os import path
 import pandas as pd
 from torch.utils.data import Dataset
-
+from torch.autograd import Variable
+import torch.nn.functional as F
 
 _WIDTH = 224
 _HEIGHT = 224
@@ -122,15 +123,14 @@ def train(train_loader, model, criterion, optimizer, epoch):
     logger.info("Training ...")
     model.train()
     for i, (data, target) in enumerate(train_loader):
-        print(type(i))
-        print(type(data))
-        print(type(target))
         data, target = data.cuda(), target.cuda()
+        data, target = Variable(data), Variable(target)
         # target = target.cuda(non_blocking=True)
         optimizer.zero_grad()
         # compute output
         output = model(data)
-        loss = criterion(output, target)
+        loss = F.cross_entropy(output, target)
+        # loss = criterion(output, target)
         # compute gradient and do SGD step
         loss.backward()
         optimizer.step()
@@ -141,12 +141,11 @@ def main():
         # Horovod: initialize Horovod.
         logger.info("Runnin Distributed")
         hvd.init()
+        # Horovod: pin GPU to local rank.
+        torch.cuda.set_device(hvd.local_rank())
 
     logger.info("PyTorch version {}".format(torch.__version__))
     torch.manual_seed(_SEED)
-
-    # Horovod: pin GPU to local rank.
-    torch.cuda.set_device(hvd.local_rank())
     torch.cuda.manual_seed(_SEED)
 
     kwargs = {'num_workers': 1, 'pin_memory': True}
@@ -155,9 +154,6 @@ def main():
 
     train_X, train_y, valid_X, valid_y = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), os.getenv('AZ_BATCHAI_INPUT_TEST'))
 
-    print(train_X.shape)
-    print(train_y.shape)
-    print(train_y[:10])
     logger.info("Setting up loaders")
     train_dataset = ImageNet(
         train_X,
@@ -194,8 +190,7 @@ def main():
     optimizer = hvd.DistributedOptimizer(
         optimizer, named_parameters=model.named_parameters())
 
-    criterion = nn.CrossEntropyLoss().cuda()
-
+    criterion=None
     logger.info("Training ...")
     # Main training-loop
     for epoch in range(_EPOCHS):
