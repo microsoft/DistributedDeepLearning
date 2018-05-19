@@ -137,8 +137,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
         optimizer.step()
         print(loss.data)
         if i % 100 == 0:
-            msg = 'Train Epoch: {}   duration({}) {}  loss: total-samples: {}'
-            logger.info(msg.format(epoch, t.elapsed, i * len(data)))
+            msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
+            logger.info(msg.format(epoch, t.elapsed, loss.data[0], i * len(data)))
             t.__enter__()
 
 
