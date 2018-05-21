@@ -271,7 +271,8 @@ if __name__ == '__main__':
     if not os.path.isdir(data_path):
         raise RuntimeError("Directory %s does not exist" % data_path)
 
-    mean_data = os.path.join(abs_path, 'ImageNet1K_mean.xml')
+    #mean_data = os.path.join(abs_path, 'ImageNet1K_mean.xml')
+    mean_data = os.path.join(data_path, 'ImageNet1K_mean.xml')
     train_data = os.path.join(data_path, 'train_map.txt')
     test_data = os.path.join(data_path, 'val_map.txt')
 
