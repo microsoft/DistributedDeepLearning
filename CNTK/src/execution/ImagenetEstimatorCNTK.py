@@ -189,8 +189,8 @@ def train_and_test(network, trainer, train_source, test_source, minibatch_size,
         checkpoint_config=CheckpointConfig(frequency=epoch_size,
                                            filename=os.path.join(
                                                model_path, model_name),
-                                           restore=restore),
-        test_config=TestConfig(test_source, minibatch_size)
+                                           restore=restore)#,
+        #test_config=TestConfig(test_source, minibatch_size)
     ).train()
 
     if profiling:
@@ -211,7 +211,7 @@ def resnet_imagenet(train_data, test_data, mean_data, network_name, epoch_size,
     # thus leads to higher training error. This is a trade-off of speed and accuracy
     minibatch_size = batch_size * \
         (Communicator.num_workers() if scale_up else 1)
-
+    print("minibatch_size=", minibatch_size)
     progress_printer = ProgressPrinter(
         freq=num_mbs_per_log,
         tag='Training',
@@ -227,7 +227,7 @@ def resnet_imagenet(train_data, test_data, mean_data, network_name, epoch_size,
         train_data, mean_data, train=True, total_number_of_samples=max_epochs * epoch_size)
     test_source = create_image_mb_source(
         test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
-    with Timer(output=logger.info, prefix="Training"):
+    with Timer(output=logger.info, prefix="Training", output=True):
         logger.info('Training...')
         train_and_test(network, trainer, train_source, test_source,
                        minibatch_size, epoch_size, restore, profiling)
