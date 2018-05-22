@@ -29,7 +29,7 @@ define serve_notebbook
 endef
 
 define execute_mpi
- nvidia-docker run --shm-size 8G -it \
+ nvidia-docker run -it \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
