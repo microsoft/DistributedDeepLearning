@@ -17,7 +17,6 @@ from timer import Timer
 import os
 from PIL import Image
 
-import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 import torch.utils.data.distributed

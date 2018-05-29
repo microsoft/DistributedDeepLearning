@@ -31,7 +31,8 @@ RUN cd /tmp && \
     wget -q 'http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/11595/l_mpi_2017.3.196.tgz' && \
     tar zxvf l_mpi_2017.3.196.tgz && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' /tmp/l_mpi_2017.3.196/silent.cfg && \
-    sed -i -e 's|^#ACTIVATION_LICENSE_FILE=|ACTIVATION_LICENSE_FILE=/tmp/l_mpi_2017.3.196/USE_SERVER.lic|g' /tmp/l_mpi_2017.3.196/silent.cfg && \
+    sed -i -e 's|^#ACTIVATION_LICENSE_FILE=|ACTIVATION_LICENSE_FILE=/tmp/l_mpi_2017.3.196/USE_SERVER.lic|g' \
+    			/tmp/l_mpi_2017.3.196/silent.cfg && \
     sed -i -e 's/^ACTIVATION_TYPE=exist_lic/ACTIVATION_TYPE=license_server/g' /tmp/l_mpi_2017.3.196/silent.cfg && \
     cd /tmp/l_mpi_2017.3.196 && \
     ./install.sh -s silent.cfg && \
@@ -48,7 +49,8 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     rm get-pip.py
 
 # Install TensorFlow and Keras
-RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn keras pillow
+RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas \
+ 	scikit-learn keras pillow
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
