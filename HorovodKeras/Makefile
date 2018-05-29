@@ -1,12 +1,19 @@
 define PROJECT_HELP_MSG
 Usage:
     make help                   show this message
+    make build                  make Horovod Keras image with Open MPI
+    make build-intel            make Horovod Keras image with Intel MPI
+    make run-mpi				run training using Open MPI image
+    make run-mpi-intel			run training using Intel MPI image
+    make run					run training in non-distributed mode
+    make push					push Horovod Keras image with Open MPI
+    make push-intel				push Horovod Keras image with Intel MPI
 endef
 export PROJECT_HELP_MSG
 
 DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
-#PROJ_ROOT:=$(shell dirname $(PWD))
+
 setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
 	-v $(DATA_DIR):/mnt/input \
 	-v $(DATA_DIR)/temp/model:/mnt/model \
@@ -19,14 +26,6 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input/train' \
 	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output'
 
 name_prefix:=masalvar
-
-define serve_notebbook
- nvidia-docker run -it \
- $(setup_volumes) \
- $(setup_environment) \
- -p 10000:10000 \
- $(1) bash -c "jupyter notebook --port=10000 --ip=* --allow-root --no-browser --notebook-dir=/mnt/script"
-endef
 
 define execute_mpi
  nvidia-docker run -it \
@@ -61,9 +60,6 @@ build:
 
 build-intel:
 	docker build -t $(name_prefix)/horovod-intel-keras Docker/horovod-intel
-
-notebook:
-	$(call serve_notebbook, $(name_prefix)/horovod-keras)
 
 run-mpi:
 	$(call execute_mpi, $(name_prefix)/horovod-keras)
