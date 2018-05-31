@@ -2,6 +2,8 @@
 #
 # Licensed under the MIT license. See LICENSE.md file in the project root
 # for full license information.
+# This code is based on this example:
+# https://github.com/Microsoft/CNTK/blob/master/Examples/Image/Classification/ResNet/Python/TrainResNet_ImageNet_Distributed.py
 # ==============================================================================
 
 from __future__ import print_function
@@ -26,11 +28,15 @@ data_path = os.path.join(abs_path, "..", "..", "..", "DataSets", "ImageNet")
 model_path = os.path.join(abs_path, "Models")
 
 # model dimensions
-image_height = 224
-image_width = 224
-num_channels = 3  # RGB
-num_classes = 1000
-model_name = "ResNet_ImageNet.model"
+_WIDTH = 224
+_HEIGHT = 224
+_CHANNELS = 3
+_LR = 0.001
+_EPOCHS = 1
+_BATCHSIZE = 64
+_MOMENTUM = 0.9
+_NUMCLASSES = 1000
+_MODELNAME = 'ResNet_ImageNet.model'
 
 
 def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
@@ -54,8 +60,8 @@ def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
         ]
 
     transforms += [
-        xforms.scale(width=image_width, height=image_height,
-                     channels=num_channels, interpolations='cubic'),
+        xforms.scale(width=_WIDTH, height=_HEIGHT,
+                     channels=_CHANNELS, interpolations='cubic'),
         xforms.mean(mean_file)
     ]
 
@@ -64,7 +70,7 @@ def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
         C.io.ImageDeserializer(map_file, C.io.StreamDefs(
             # 1st col in mapfile referred to as 'image'
             features=C.io.StreamDef(field='image', transforms=transforms),
-            labels=C.io.StreamDef(field='label', shape=num_classes))),     # and second as 'label'
+            labels=C.io.StreamDef(field='label', shape=_NUMCLASSES))),     # and second as 'label'
         randomize=train,
         max_samples=total_number_of_samples,
         multithreaded_deserializer=True)
@@ -74,8 +80,8 @@ def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
 
 def create_resnet_network(network_name, fp16):
     # Input variables denoting the features and label data
-    input_var = C.input_variable((num_channels, image_height, image_width))
-    label_var = C.input_variable((num_classes))
+    input_var = C.input_variable((_CHANNELS, _HEIGHT, _WIDTH))
+    label_var = C.input_variable((_NUMCLASSES))
 
     dtype = np.float16 if fp16 else np.float32
     if fp16:
@@ -92,19 +98,19 @@ def create_resnet_network(network_name, fp16):
         # create model, and configure learning parameters
         if network_name == 'resnet18':
             z = create_imagenet_model_basic(
-                graph_input, [2, 1, 1, 2], num_classes)
+                graph_input, [2, 1, 1, 2], _NUMCLASSES)
         elif network_name == 'resnet34':
             z = create_imagenet_model_basic(
-                graph_input, [3, 3, 5, 2], num_classes)
+                graph_input, [3, 3, 5, 2], _NUMCLASSES)
         elif network_name == 'resnet50':
             z = create_imagenet_model_bottleneck(
-                graph_input, [2, 3, 5, 2], num_classes, stride1x1, stride3x3)
+                graph_input, [2, 3, 5, 2], _NUMCLASSES, stride1x1, stride3x3)
         elif network_name == 'resnet101':
             z = create_imagenet_model_bottleneck(
-                graph_input, [2, 3, 22, 2], num_classes, stride1x1, stride3x3)
+                graph_input, [2, 3, 22, 2], _NUMCLASSES, stride1x1, stride3x3)
         elif network_name == 'resnet152':
             z = create_imagenet_model_bottleneck(
-                graph_input, [2, 7, 35, 2], num_classes, stride1x1, stride3x3)
+                graph_input, [2, 7, 35, 2], _NUMCLASSES, stride1x1, stride3x3)
         else:
             return RuntimeError("Unknown model name!")
 
@@ -142,7 +148,7 @@ def create_trainer(network, minibatch_size, epoch_size, num_quantization_bits,
     # Set learning parameters
     lr_schedule = learning_rate_schedule(
         lr_per_mb, epoch_size=epoch_size, unit=UnitType.minibatch)
-    mm_schedule = momentum_schedule(0.9)
+    mm_schedule = momentum_schedule(_MOMENTUM)
 
     local_learner = nesterov(network['output'].parameters, lr_schedule, mm_schedule,
                              l2_regularization_weight=l2_reg_weight)
@@ -182,8 +188,8 @@ def train_and_test(network, trainer, train_source, test_source, minibatch_size,
         progress_frequency=epoch_size,
         checkpoint_config=CheckpointConfig(frequency=epoch_size,
                                            filename=os.path.join(
-                                               model_path, model_name),
-                                           restore=restore)#,
+                                               model_path, _MODELNAME),
+                                           restore=restore)  # ,
         #test_config=TestConfig(test_source, minibatch_size)
     ).train()
 
@@ -222,7 +228,7 @@ def resnet_imagenet(train_data, test_data, mean_data, network_name, epoch_size,
     test_source = create_image_mb_source(
         test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
     train_and_test(network, trainer, train_source, test_source,
-                       minibatch_size, epoch_size, restore, profiling)
+                   minibatch_size, epoch_size, restore, profiling)
 
 
 if __name__ == '__main__':
@@ -290,8 +296,8 @@ if __name__ == '__main__':
     print("Start training: quantize_bit = {}, epochs = {}, distributed_after = {}".format(
         num_quantization_bits, epochs, warm_up))
 
-    resnet_imagenet(train_data, 
-                    test_data, 
+    resnet_imagenet(train_data,
+                    test_data,
                     mean_data,
                     network_name,
                     epoch_size,
@@ -300,7 +306,7 @@ if __name__ == '__main__':
                     block_size=args['block_samples'],
                     warm_up=args['distributed_after'],
                     max_epochs=epochs,
-                    restore=True, #not args['restart'],
+                    restore=True,  # not args['restart'],
                     scale_up=scale_up,
                     log_to_file=args['logdir'],
                     profiling=args['profile'],
