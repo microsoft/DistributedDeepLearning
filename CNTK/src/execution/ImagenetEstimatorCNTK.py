@@ -19,12 +19,6 @@ from cntk.debugging import *
 from cntk.logging import *
 from resnet_models import *
 import cntk.io.transforms as xforms
-import logging
-from timer import Timer
-
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Paths relative to current python file.
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -227,9 +221,7 @@ def resnet_imagenet(train_data, test_data, mean_data, network_name, epoch_size,
         train_data, mean_data, train=True, total_number_of_samples=max_epochs * epoch_size)
     test_source = create_image_mb_source(
         test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
-    with Timer(output=logger.info, prefix="Training", output=True):
-        logger.info('Training...')
-        train_and_test(network, trainer, train_source, test_source,
+    train_and_test(network, trainer, train_source, test_source,
                        minibatch_size, epoch_size, restore, profiling)
 
 
@@ -298,15 +290,17 @@ if __name__ == '__main__':
     print("Start training: quantize_bit = {}, epochs = {}, distributed_after = {}".format(
         num_quantization_bits, epochs, warm_up))
 
-    resnet_imagenet(train_data, test_data, mean_data,
+    resnet_imagenet(train_data, 
+                    test_data, 
+                    mean_data,
                     network_name,
                     epoch_size,
-                    batch_size=args['batch_size']
-                    num_quantization_bits,
+                    batch_size=args['batch_size'],
+                    num_quantization_bits=num_quantization_bits,
                     block_size=args['block_samples'],
                     warm_up=args['distributed_after'],
                     max_epochs=epochs,
-                    restore=not args['restart'],
+                    restore=True, #not args['restart'],
                     scale_up=scale_up,
                     log_to_file=args['logdir'],
                     profiling=args['profile'],
