@@ -1,19 +1,18 @@
 define PROJECT_HELP_MSG
 Usage:
     make help                   show this message
-    make build                  make Horovod TF image with Open MPI
-    make build-intel            make Horovod TF image with Intel MPI
+    make build                  make Horovod PyTorch image with Open MPI
+    make build-intel            make Horovod PyTorch image with Intel MPI
     make run-mpi				run training using Open MPI image
     make run-mpi-intel			run training using Intel MPI image
     make run					run training in non-distributed mode
-    make push					push Horovod TF image with Open MPI
-    make push-intel				push Horovod TF image with Intel MPI
+    make push					push Horovod PyTorch image with Open MPI
+    make push-intel				push Horovod PyTorch image with Intel MPI
 endef
 export PROJECT_HELP_MSG
 
 DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
-
 setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
 	-v $(DATA_DIR):/mnt/input \
 	-v $(DATA_DIR)/temp/model:/mnt/model \
@@ -33,48 +32,48 @@ define execute_mpi
  $(setup_environment) \
  --env DISTRIBUTED='True' \
  --privileged \
- $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetEstimatorHorovod.py"
+ $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetPytorchHorovod.py"
 endef
 
 define execute_mpi_intel
- nvidia-docker run -it \
+ nvidia-docker run --shm-size 8G -it \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
  --privileged \
- $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetEstimatorHorovod.py"
+ $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetPytorchHorovod.py"
 endef
 
 define execute
- nvidia-docker run -it \
+ nvidia-docker run --shm-size 8G -it \
  $(setup_volumes) \
  $(setup_environment) \
- $(1) bash -c "python /mnt/script/ImagenetEstimatorHorovod.py"
+ $(1) bash -c "python /mnt/script/ImagenetPytorchHorovod.py"
 endef
 
 help:
 	echo "$$PROJECT_HELP_MSG" | less
 
 build:
-	docker build -t $(name_prefix)/horovod Docker/horovod
+	docker build -t $(name_prefix)/horovod-pytorch Docker/horovod
 
 build-intel:
-	docker build -t $(name_prefix)/horovod-intel Docker/horovod-intel
+	docker build -t $(name_prefix)/horovod-intel-pytorch Docker/horovod-intel
 
 run-mpi:
-	$(call execute_mpi, $(name_prefix)/horovod)
+	$(call execute_mpi, $(name_prefix)/horovod-pytorch)
 
 run-mpi-intel:
-	$(call execute_mpi_intel, $(name_prefix)/horovod-intel)
+	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-pytorch)
 
 run:
-	$(call execute, $(name_prefix)/horovod)
+	$(call execute, $(name_prefix)/horovod-pytorch)
 
 push:
-	docker push $(name_prefix)/horovod
+	docker push $(name_prefix)/horovod-pytorch
 
 push-intel:
-	docker push $(name_prefix)/horovod-intel
+	docker push $(name_prefix)/horovod-intel-pytorch
 
 
 .PHONY: help build push

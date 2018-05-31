@@ -14,11 +14,9 @@ logging.basicConfig(level=logging.INFO)
 import os
 from os import path
 
-import numpy as np
 import pandas as pd
 import tensorflow as tf
 import tensorflow.contrib.slim.nets as nets
-from sklearn.preprocessing import OneHotEncoder
 from tensorflow.contrib import slim
 from toolz import pipe
 from timer import Timer
@@ -79,7 +77,7 @@ def _preprocess_images(filename):
 
 
 def _preprocess_labels(label):
-    return tf.cast(label, dtype=tf.float32)
+    return tf.cast(label, dtype=tf.int32)
 
 
 def _parse_function_train(filename, label):
@@ -133,8 +131,7 @@ def model_fn(features, labels, mode, params):
         return tf.estimator.EstimatorSpec(mode=mode,
                                           predictions=predictions)
 
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=labels,
-                                                            logits=logits)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
     loss = tf.reduce_mean(cross_entropy)
 
     if mode == tf.estimator.ModeKeys.EVAL:
@@ -181,10 +178,8 @@ def _create_data_fn(train_path, test_path):
     logger.info('Reading validation data info')
     validation_df = _load_validation(test_path)
 
-    oh_encoder = OneHotEncoder(sparse=False)
-
-    train_labels = oh_encoder.fit_transform(train_df[['num_id']].values).astype(np.uint8)
-    validation_labels = oh_encoder.transform(validation_df[['num_id']].values).astype(np.uint8)
+    train_labels=train_df[['num_id']].values.ravel()-1
+    validation_labels=validation_df[['num_id']].values.ravel()-1
 
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
     train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE)
@@ -206,8 +201,8 @@ def _create_data_fn(train_path, test_path):
 
     _train_input_fn.length = len(train_df)
     _validation_input_fn.length = len(validation_df)
-    _train_input_fn.classes = train_labels.shape[1]
-    _validation_input_fn.classes = validation_labels.shape[1]
+    _train_input_fn.classes = 1000
+    _validation_input_fn.classes = 1000
 
     return _train_input_fn, _validation_input_fn
 
