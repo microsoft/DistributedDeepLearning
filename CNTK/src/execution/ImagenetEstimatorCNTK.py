@@ -1,10 +1,13 @@
-# Copyright (c) Microsoft. All rights reserved.
-#
-# Licensed under the MIT license. See LICENSE.md file in the project root
-# for full license information.
-# This code is based on this example:
-# https://github.com/Microsoft/CNTK/blob/master/Examples/Image/Classification/ResNet/Python/TrainResNet_ImageNet_Distributed.py
-# ==============================================================================
+"""
+Trains ResNet50 using CNTK.
+
+It requires the following env variables
+AZ_BATCHAI_INPUT_TRAIN
+AZ_BATCHAI_OUTPUT_MODEL
+ 
+This code is based on this example:
+https://github.com/Microsoft/CNTK/blob/master/Examples/Image/Classification/ResNet/Python/TrainResNet_ImageNet_Distributed.py
+"""
 
 from __future__ import print_function
 import os
@@ -33,6 +36,17 @@ _MODELNAME = 'ResNet_ImageNet.model'
 _NUMQUANTIZEDBITS = 32
 _WD = 0.0001
 _NUMIMAGES = 1281167
+
+
+def _get_progress_printer():
+    pp = ProgressPrinter(
+        freq=100,
+        tag='Training',
+        log_to_file=None,
+        rank=Communicator.rank(),
+        gen_heartbeat=False,
+        num_epochs=_EPOCHS)
+    return pp
 
 
 def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
@@ -101,9 +115,8 @@ def model_fn():
 
 # Create trainer
 def create_trainer(network, minibatch_size, epoch_size,
-                   progress_printer, learning_rate, momentum, l2_reg_weight,
+                   learning_rate, momentum, l2_reg_weight,
                    num_quantization_bits):
-    # lr_per_mb = [1.0]*30 + [0.1]*30 + [0.01]*20 + [0.001]
     lr_per_mb = [learning_rate]
 
     # Set learning parameters
@@ -120,6 +133,9 @@ def create_trainer(network, minibatch_size, epoch_size,
         local_learner,
         num_quantization_bits=num_quantization_bits,
         distributed_after=0)
+
+    # logger
+    progress_printer = _get_progress_printer()
 
     return Trainer(network['output'], (network['ce'], network['errs']), learner, progress_printer)
 
@@ -156,20 +172,11 @@ def main():
 
     set_computation_network_trace_level(0)
     minibatch_size = _BATCHSIZE * Communicator.num_workers()
-    print("minibatch_size=", minibatch_size)
-    progress_printer = ProgressPrinter(
-        freq=100,
-        tag='Training',
-        log_to_file=None,
-        rank=Communicator.rank(),
-        gen_heartbeat=False,
-        num_epochs=_EPOCHS)
 
     network = model_fn()
     trainer = create_trainer(network,
                              minibatch_size,
                              _NUMIMAGES,
-                             progress_printer,
                              learning_rate=_LR,
                              momentum=_MOMENTUM,
                              l2_reg_weight=_WD,
