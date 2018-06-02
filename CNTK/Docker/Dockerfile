@@ -32,8 +32,7 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     rm get-pip.py
 
 # Install CNTK
-RUN pip install --no-cache-dir https://cntk.ai/PythonWheel/GPU/cntk-$CNTK_VERSION-cp35-cp35m-linux_x86_64.whl h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn
-
+RUN pip install --no-cache-dir https://cntk.ai/PythonWheel/GPU/cntk_gpu-$CNTK_VERSION-cp35-cp35m-linux_x86_64.whl h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf && \
