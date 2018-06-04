@@ -24,10 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libnccl-dev \
         libjpeg-dev \
         libpng-dev \
-        ssh \
-        python$PYTHON_VERSION \
-        python$PYTHON_VERSION-dev
-    
+        ssh     
 
 # Get CNTK Binary Distribution
 RUN CNTK_VERSION_DASHED=$(echo $CNTK_VERSION | tr . -) && \
@@ -39,7 +36,33 @@ RUN CNTK_VERSION_DASHED=$(echo $CNTK_VERSION | tr . -) && \
     rm -f CNTK-${CNTK_VERSION_DASHED}-Linux-64bit-GPU.tar.gz && \
     /bin/bash /cntk/Scripts/install/linux/install-cntk.sh --py-version $PY_VERSION --docker --anaconda-basepath /opt/conda
     
-ENV PATH /opt/conda/envs/py$PY_VERSION/bin:$PATH
+
+RUN ln -s /opt/conda/envs/cntk-py$PY_VERSION/bin/python$PYTHON_VERSION /usr/bin/python
+
+# Install Open MPI
+RUN mkdir /tmp/openmpi && \
+    cd /tmp/openmpi && \
+    wget https://www.open-mpi.org/software/ompi/v3.0/downloads/openmpi-3.0.0.tar.gz && \
+    tar zxf openmpi-3.0.0.tar.gz && \
+    cd openmpi-3.0.0 && \
+    ./configure --enable-orterun-prefix-by-default && \
+    make -j $(nproc) all && \
+    make install && \
+    ldconfig && \
+    rm -rf /tmp/openmpi
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
+    echo '#!/bin/bash' > /usr/local/bin/mpirun && \
+    echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun && \
+    chmod a+x /usr/local/bin/mpirun
+
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
+RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
+    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
+    echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
+
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf && \
