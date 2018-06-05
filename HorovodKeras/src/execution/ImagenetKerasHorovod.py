@@ -180,7 +180,8 @@ def main():
     # Horovod: broadcast resume_from_epoch from rank 0 (which will have
     # checkpoints) to other ranks.
     resume_from_epoch = 0
-    resume_from_epoch = hvd.broadcast(resume_from_epoch, 0, name='resume_from_epoch')
+    if _DISTRIBUTED:
+        resume_from_epoch = hvd.broadcast(resume_from_epoch, 0, name='resume_from_epoch')
 
     if _FAKE:
         train_iter = _fake_data_iterator_from()
