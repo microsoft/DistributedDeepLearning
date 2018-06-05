@@ -13,6 +13,7 @@ export PROJECT_HELP_MSG
 
 DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
+FAKE:='False'
 
 setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
 	-v $(DATA_DIR):/mnt/input \
@@ -33,6 +34,7 @@ define execute_mpi
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
+ --env FAKE=$(FAKE) \
  --privileged \
  $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetKerasHorovod.py"
 endef
@@ -42,6 +44,7 @@ define execute_mpi_intel
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
+ --env FAKE=$(FAKE) \
  --privileged \
  $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetKerasHorovod.py"
 endef
