@@ -36,6 +36,7 @@ class FakeDataGenerator(keras.utils.Sequence):
         self._labels = _create_labels(self.batch_size, self.num_batches, self.n_classes)
         self._indexes = np.arange(len(self._labels))
         self._length=length
+        self.batch_index=0
         self.on_epoch_end()
 
     def __len__(self):
@@ -50,6 +51,35 @@ class FakeDataGenerator(keras.utils.Sequence):
         X, y = self._data_generation(indexes)
 
         return X, y
+
+    def __iter__(self):  # pylint: disable=non-iterator-returned
+
+        # Needed if we want to do something like:
+        # for x, y in data_gen.flow(...):
+        return self
+
+    def __next__(self, *args, **kwargs):
+        return self.next(*args, **kwargs)
+
+    def reset(self):
+        self.batch_index = 0
+
+    def next(self):
+        """For python 2.x.
+        Returns:
+            The next batch.
+        """
+        # Keeps under lock only the mechanism which advances
+        # the indexing of each batch.
+        with self.lock:
+            index_array = self.batch_index
+            self.batch_index+=1
+            if self.batch_index>=len(self._labels):
+                self.reset()
+        # The transformation of images is not under thread lock
+        # so it can be done in parallel
+
+        return self[index_array]
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
