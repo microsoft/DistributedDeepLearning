@@ -53,6 +53,8 @@ define execute
  nvidia-docker run -it \
  $(setup_volumes) \
  $(setup_environment) \
+ --env DISTRIBUTED='False' \
+ --env FAKE=$(FAKE) \
  $(1) bash -c "python /mnt/script/ImagenetKerasHorovod.py"
 endef
 
