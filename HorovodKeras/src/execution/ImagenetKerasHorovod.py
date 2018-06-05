@@ -9,6 +9,8 @@ AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
 
+from data_generator import FakeDataGenerator
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,7 @@ def _str_to_bool(in_str):
         return False
 
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
+_FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
 
 if _DISTRIBUTED:
     import horovod.keras as hvd
@@ -87,6 +90,10 @@ def _training_data_iterator_from():
     train_iter = train_gen.flow_from_directory(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), batch_size=_BATCHSIZE,
                                                target_size=(224, 224))
     return train_iter
+
+def _fake_data_iterator_from():
+    return FakeDataGenerator(batch_size=_BATCHSIZE, n_channels=1000, length=1287000)
+
 
 
 def _get_optimizer(params, is_distributed=_DISTRIBUTED):
@@ -175,7 +182,10 @@ def main():
     resume_from_epoch = 0
     resume_from_epoch = hvd.broadcast(resume_from_epoch, 0, name='resume_from_epoch')
 
-    train_iter = _training_data_iterator_from()
+    if _FAKE:
+        train_iter = _fake_data_iterator_from()
+    else:
+        train_iter = _training_data_iterator_from()
 
     # test_iter = _validation_data_iterator_from()
 
