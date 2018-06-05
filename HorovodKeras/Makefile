@@ -58,6 +58,15 @@ define execute
  $(1) bash -c "python /mnt/script/ImagenetKerasHorovod.py"
 endef
 
+define execute-ipython
+ nvidia-docker run -it \
+ $(setup_volumes) \
+ $(setup_environment) \
+ --env DISTRIBUTED='False' \
+ --env FAKE=$(FAKE) \
+ $(1) bash -c "ipython"
+endef
+
 help:
 	echo "$$PROJECT_HELP_MSG" | less
 
@@ -75,6 +84,9 @@ run-mpi-intel:
 
 run:
 	$(call execute, $(name_prefix)/horovod-keras:$(tag))
+
+run-ipython:
+	$(call execute-ipython, $(name_prefix)/horovod-keras:$(tag))
 
 push:
 	docker push $(name_prefix)/horovod-keras:$(tag)
