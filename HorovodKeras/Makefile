@@ -26,6 +26,7 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input/train' \
 	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output'
 
 name_prefix:=masalvar
+tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
 
 define execute_mpi
  nvidia-docker run -it \
@@ -56,25 +57,25 @@ help:
 	echo "$$PROJECT_HELP_MSG" | less
 
 build:
-	docker build -t $(name_prefix)/horovod-keras Docker/horovod
+	docker build -t $(name_prefix)/horovod-keras:$(tag) Docker/horovod
 
 build-intel:
-	docker build -t $(name_prefix)/horovod-intel-keras Docker/horovod-intel
+	docker build -t $(name_prefix)/horovod-intel-keras:$(tag) Docker/horovod-intel
 
 run-mpi:
-	$(call execute_mpi, $(name_prefix)/horovod-keras)
+	$(call execute_mpi, $(name_prefix)/horovod-keras:$(tag))
 
 run-mpi-intel:
-	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-keras)
+	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-keras:$(tag))
 
 run:
-	$(call execute, $(name_prefix)/horovod-keras)
+	$(call execute, $(name_prefix)/horovod-keras:$(tag))
 
 push:
-	docker push $(name_prefix)/horovod-keras
+	docker push $(name_prefix)/horovod-keras:$(tag)
 
 push-intel:
-	docker push $(name_prefix)/horovod-intel-keras
+	docker push $(name_prefix)/horovod-intel-keras:$(tag)
 
 
 .PHONY: help build push
