@@ -224,8 +224,9 @@ def main():
         # 3 / N batches of validation data on every worker, where N is the number of workers.
         # Over-sampling of validation data helps to increase probability that every validation
         # example will be evaluated.
+        num_workers = hvd.size() if _DISTRIBUTED else 1
         model.fit_generator(train_iter,
-                            steps_per_epoch=len(train_iter) // hvd.size(),
+                            steps_per_epoch=len(train_iter) // num_workers,
                             callbacks=callbacks,
                             epochs=_EPOCHS,
                             verbose=verbose,
