@@ -20,6 +20,8 @@ import tensorflow.contrib.slim.nets as nets
 from tensorflow.contrib import slim
 from toolz import pipe
 from timer import Timer
+import numpy as np
+
 
 _WIDTH = 224
 _HEIGHT = 224
@@ -39,6 +41,7 @@ def _str_to_bool(in_str):
         return False
 
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
+_FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
 
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
@@ -207,6 +210,58 @@ def _create_data_fn(train_path, test_path):
     return _train_input_fn, _validation_input_fn
 
 
+def _create_data(batch_size, num_batches, dim, channels, seed=42):
+    np.random.seed(42)
+    return np.random.rand(batch_size * num_batches,
+                          dim[0],
+                          dim[1],
+                          channels).astype(np.float32)
+
+
+def _create_labels(batch_size, num_batches, n_classes):
+    return np.random.choice(n_classes, batch_size * num_batches)
+
+
+def _create_fake_data_fn(train_length=1287000, valid_length=50000):
+    logger.info('Creating fake data')
+
+    def fake_data_generator(num_batches=20):
+
+        data_array = _create_data(_BATCHSIZE, num_batches, (_WIDTH, _HEIGHT), _CHANNELS)
+        labels_array = _create_labels(_BATCHSIZE, num_batches, 1000)
+
+        for i in range(num_batches):
+            yield data_array[i*_BATCHSIZE:(i+1)*_BATCHSIZE], labels_array[i*_BATCHSIZE:(i+1)*_BATCHSIZE]
+
+    train_data = tf.data.Dataset().from_generator(fake_data_generator,
+                                                  output_types=(tf.float32, tf.int32),
+                                                  output_shapes=(tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS]), tf.TensorShape([None])))
+
+    train_data = (train_data.shuffle(20*_BATCHSIZE)
+                            .repeat()
+                            .prefetch(_BUFFER))
+
+    validation_data = tf.data.Dataset().from_generator(fake_data_generator,
+                                                  output_types=(tf.float32, tf.int32),
+                                                  output_shapes=(tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS]),
+                                                                 tf.TensorShape([None])))
+
+    validation_data = (validation_data.prefetch(_BUFFER))
+
+    def _train_input_fn():
+        return train_data.make_one_shot_iterator().get_next()
+
+    def _validation_input_fn():
+        return validation_data.make_one_shot_iterator().get_next()
+
+    _train_input_fn.length = train_length
+    _validation_input_fn.length = valid_length
+    _train_input_fn.classes = 1000
+    _validation_input_fn.classes = 1000
+
+    return _train_input_fn, _validation_input_fn
+
+
 def _get_runconfig(is_distributed=_DISTRIBUTED):
     if is_distributed:
         # Horovod: pin GPU to be used to process local rank (one GPU per process)
@@ -254,8 +309,11 @@ def main():
         logger.info("Runnin Distributed")
         hvd.init()
     logger.info("Tensorflow version {}".format(tf.__version__))
-    train_input_fn, validation_input_fn = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'),
-                                                          os.getenv('AZ_BATCHAI_INPUT_TEST'))
+    if _DISTRIBUTED:
+        train_input_fn, validation_input_fn = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'),
+                                                              os.getenv('AZ_BATCHAI_INPUT_TEST'))
+    else:
+        train_input_fn, validation_input_fn = _create_fake_data_fn()
 
     run_config = _get_runconfig()
     model_dir = _get_model_dir()
