@@ -22,6 +22,9 @@ from cntk.debugging import *
 from cntk.logging import *
 from resnet_models import *
 import cntk.io.transforms as xforms
+import logging
+
+logger = logging.getLogger(__name__)
 
 # model dimensions
 _WIDTH = 224
@@ -166,13 +169,22 @@ def train_and_test(network, trainer, train_source, test_source, minibatch_size,
 def main():
     model_path = os.getenv('AZ_BATCHAI_OUTPUT_MODEL')
     data_path = os.getenv('AZ_BATCHAI_INPUT_TRAIN')
+    logger.info("model_path: {}".format(model_path))
+    logger.info("data_path: {}".format(data_path))
     mean_data = os.path.join(data_path, 'ImageNet1K_mean.xml')
     train_data = os.path.join(data_path, 'train_map.txt')
     test_data = os.path.join(data_path, 'val_map.txt')
+    logger.info("AZ_BATCHAI_NUM_GPUS={}".format(os.getenv('AZ_BATCHAI_NUM_GPUS')))
+    logger.info("AZ_BATCHAI_WORKER_HOSTS={}".format(os.getenv('AZ_BATCHAI_WORKER_HOSTS')))
+    
+    #set_computation_network_trace_level(0)
+    logger.info("mean_data: {}".format(mean_data))
+    #logger.info("communicator num_workers {}".format(Communicator.num_workers()))
+    #logger.info(type(Communicator.num_workers()))
+    #minibatch_size = _BATCHSIZE * Communicator.num_workers()
+    minibatch_size = _BATCHSIZE*32
 
-    set_computation_network_trace_level(0)
-    minibatch_size = _BATCHSIZE * Communicator.num_workers()
-
+    logger.info("Creating model...")
     network = model_fn()
     trainer = create_trainer(network,
                              minibatch_size,
@@ -181,11 +193,14 @@ def main():
                              momentum=_MOMENTUM,
                              l2_reg_weight=_WD,
                              num_quantization_bits=_NUMQUANTIZEDBITS)
-
+    
+    logger.info('Creating data sources...')
     train_source = create_image_mb_source(
         train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_NUMIMAGES)
     test_source = create_image_mb_source(
         test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
+    
+    logger.info('Training...')
     train_and_test(network, trainer, train_source, test_source,
                    minibatch_size, _NUMIMAGES, model_path)
 
@@ -194,4 +209,8 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    logger.info("Starting routine")
     main()
+    logger.info("Routine finished")
+    

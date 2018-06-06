@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         sudo \
         git \
         curl \
-        nano \
         wget \
         ca-certificates \
         libopenmpi-dev \
@@ -24,20 +23,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libnccl-dev \
         libjpeg-dev \
         libpng-dev \
-        ssh     
+        ssh \
+        python$PYTHON_VERSION \
+        python$PYTHON_VERSION-dev
 
-# Get CNTK Binary Distribution
-RUN CNTK_VERSION_DASHED=$(echo $CNTK_VERSION | tr . -) && \
-    ([ "$CNTK_VERSION" != "2.4" ] || VERIFY_SHA256="true") && \
-    CNTK_SHA256="8eebff81ef4111b2be5804303f1254cd20de5911a7678c8e64689e5c288dde40" && \
-    wget -q https://cntk.ai/BinaryDrop/CNTK-${CNTK_VERSION_DASHED}-Linux-64bit-GPU.tar.gz && \
-    ([ "$VERIFY_SHA256" != "true" ] || (echo "$CNTK_SHA256 CNTK-${CNTK_VERSION_DASHED}-Linux-64bit-GPU.tar.gz" | sha256sum --check --strict -)) && \
-    tar -xzf CNTK-${CNTK_VERSION_DASHED}-Linux-64bit-GPU.tar.gz && \
-    rm -f CNTK-${CNTK_VERSION_DASHED}-Linux-64bit-GPU.tar.gz && \
-    /bin/bash /cntk/Scripts/install/linux/install-cntk.sh --py-version $PY_VERSION --docker --anaconda-basepath /opt/conda
-    
+RUN ln -s /usr/bin/python$PYTHON_VERSION /usr/bin/python
 
-RUN ln -s /opt/conda/envs/cntk-py$PY_VERSION/bin/python$PYTHON_VERSION /usr/bin/python
+RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
+    python get-pip.py && \
+    rm get-pip.py
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi && \
@@ -63,10 +57,12 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
     echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
     echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
 
-
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf && \
     echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+# Install CNTK
+RUN pip install --no-cache-dir https://cntk.ai/PythonWheel/GPU/cntk_gpu-$CNTK_VERSION-cp$PY_VERSION-cp${PY_VERSION}m-linux_x86_64.whl h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new && \
