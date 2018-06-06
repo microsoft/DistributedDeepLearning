@@ -116,6 +116,7 @@ class FakeDataGenerator(keras.preprocessing.image.Iterator):
         self._labels = _create_labels(self.batch_size, self.num_batches, self.n_classes)
         self._indexes = np.arange(len(self._labels))
         self._length=length
+        self.n = length
         self.batch_index=0
 
     def _get_batches_of_transformed_samples(self, index_array):
