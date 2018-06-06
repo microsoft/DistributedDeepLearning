@@ -123,9 +123,11 @@ class FakeDataGenerator(keras.preprocessing.image.Iterator):
         self.total_batches_seen = 0
         self.lock = threading.Lock()
         self.index_array = None
+        self.translation_index = np.random.choice(len(self._labels), length)
 
 
     def _get_batches_of_transformed_samples(self, index_array):
         logger.info('Retrieving samples')
         logger.info(str(index_array))
-        return self._data[index_array], keras.utils.to_categorical(self._labels[index_array], num_classes=self.n_classes)
+        tr_index_array = self.translation_index[index_array]
+        return self._data[tr_index_array], keras.utils.to_categorical(self._labels[tr_index_array], num_classes=self.n_classes)
