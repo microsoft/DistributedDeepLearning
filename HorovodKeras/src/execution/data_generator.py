@@ -95,7 +95,7 @@ def _create_labels(batch_size, num_batches, n_classes):
 
 
 
-class FakeDataGenerator(keras.utils.Iterator):
+class FakeDataGenerator(keras.preprocessing.image.Iterator):
 
     def __init__(self,
                  batch_size=32,
