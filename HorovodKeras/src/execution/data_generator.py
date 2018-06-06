@@ -93,7 +93,7 @@ def _create_labels(batch_size, num_batches, n_classes):
 #         return self._data[indexes], keras.utils.to_categorical(self._labels[indexes], num_classes=self.n_classes)
 
 
-
+import threading
 
 class FakeDataGenerator(keras.preprocessing.image.Iterator):
 
@@ -118,6 +118,12 @@ class FakeDataGenerator(keras.preprocessing.image.Iterator):
         self._length=length
         self.n = length
         self.batch_index=0
+        self.seed = 42
+
+        self.total_batches_seen = 0
+        self.lock = threading.Lock()
+        self.index_array = None
+
 
     def _get_batches_of_transformed_samples(self, index_array):
         logger.info('Retrieving samples')
