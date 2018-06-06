@@ -309,11 +309,11 @@ def main():
         logger.info("Runnin Distributed")
         hvd.init()
     logger.info("Tensorflow version {}".format(tf.__version__))
-    if _DISTRIBUTED:
+    if _FAKE:
+        train_input_fn, validation_input_fn = _create_fake_data_fn()
+    else:
         train_input_fn, validation_input_fn = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'),
                                                               os.getenv('AZ_BATCHAI_INPUT_TEST'))
-    else:
-        train_input_fn, validation_input_fn = _create_fake_data_fn()
 
     run_config = _get_runconfig()
     model_dir = _get_model_dir()
