@@ -28,18 +28,20 @@ class FakeDataGenerator(keras.preprocessing.image.Iterator):
                  n_channels=3,
                  n_classes=10,
                  length=1000,
-                 shuffle=True):
+                 shuffle=True,
+                 seed=42):
+
         'Initialization'
+        super(FakeDataGenerator, self).__init__(length,
+                                                batch_size,
+                                                shuffle,
+                                                seed)
         self.dim = dim
-        self.batch_size = batch_size
         self.n_channels = n_channels
         self.n_classes = n_classes
-        self.shuffle = shuffle
         self.num_batches = num_batches
         self._data = _create_data(self.batch_size, self.num_batches, self.dim, self.n_channels)
         self._labels = _create_labels(self.batch_size, self.num_batches, self.n_classes)
-        self.n = length
-        self.seed = 42
         self.translation_index = np.random.choice(len(self._labels), length)
 
 
