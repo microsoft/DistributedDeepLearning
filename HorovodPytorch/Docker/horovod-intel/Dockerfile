@@ -1,9 +1,10 @@
 FROM nvidia/cuda:9.0-devel-ubuntu16.04
 
 # TensorFlow version is tightly coupled to CUDA and cuDNN so it should be selected carefully
-ENV TENSORFLOW_VERSION=1.6.0
+ENV TENSORFLOW_VERSION=1.8.0
+ENV PYTORCH_VERSION=0.4.0
 ENV CUDNN_VERSION=7.0.5.15-1+cuda9.0
-ENV PYTHON_VERSION=3.5
+ENV NCCL_VERSION=2.2.12-1+cuda9.0
 
 RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
 
@@ -16,15 +17,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         wget \
         ca-certificates \
         libdapl2 \
-        libcudnn7=$CUDNN_VERSION \
+        libcudnn7=${CUDNN_VERSION} \
+        libnccl2=${NCCL_VERSION} \
+        libnccl-dev=${NCCL_VERSION} \
         libjpeg-dev \
         libpng-dev \
         libmlx4-1 \
-        libsm6 \ 
+        libsm6 \
         libxext6 \
         python$PYTHON_VERSION \
         python$PYTHON_VERSION-dev
-
 
 # install intel MPI
 RUN cd /tmp && \
@@ -54,5 +56,5 @@ RUN pip install http://download.pytorch.org/whl/cu90/torch-0.4.0-cp35-cp35m-linu
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
     /bin/bash -c "source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh" && \
-    pip install --no-cache-dir horovod && \
+    HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod && \
     ldconfig
