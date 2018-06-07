@@ -40,6 +40,13 @@ _NUMQUANTIZEDBITS = 32
 _WD = 0.0001
 _NUMIMAGES = 1281167
 
+def _str_to_bool(in_str):
+    if 't' in in_str.lower():
+        return True
+    else:
+        return False
+
+_DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 
 def _get_progress_printer():
     pp = ProgressPrinter(
@@ -132,10 +139,13 @@ def create_trainer(network, minibatch_size, epoch_size,
                                  l2_regularization_weight=l2_reg_weight)
 
     # learner object
-    learner = data_parallel_distributed_learner(
-        local_learner,
-        num_quantization_bits=num_quantization_bits,
-        distributed_after=0)
+    if _DISTRIBUTED:
+        learner = data_parallel_distributed_learner(
+            local_learner,
+            num_quantization_bits=num_quantization_bits,
+            distributed_after=0)
+    else:
+        learner = local_learner
 
     # logger
     progress_printer = _get_progress_printer()
@@ -181,11 +191,15 @@ def main():
     logger.info("mean_data: {}".format(mean_data))
     #logger.info("communicator num_workers {}".format(Communicator.num_workers()))
     #logger.info(type(Communicator.num_workers()))
-    #minibatch_size = _BATCHSIZE * Communicator.num_workers()
-    minibatch_size = _BATCHSIZE*32
+    if _DISTRIBUTED:
+        minibatch_size = _BATCHSIZE * Communicator.num_workers()
+    else:
+        minibatch_size = _BATCHSIZE
 
-    logger.info("Creating model...")
+    logger.info("Creating model ...")
     network = model_fn()
+    
+    logger.info("Creating trainer ...")
     trainer = create_trainer(network,
                              minibatch_size,
                              _NUMIMAGES,
@@ -194,7 +208,7 @@ def main():
                              l2_reg_weight=_WD,
                              num_quantization_bits=_NUMQUANTIZEDBITS)
     
-    logger.info('Creating data sources...')
+    logger.info('Creating data sources ...')
     train_source = create_image_mb_source(
         train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_NUMIMAGES)
     test_source = create_image_mb_source(
@@ -204,8 +218,9 @@ def main():
     train_and_test(network, trainer, train_source, test_source,
                    minibatch_size, _NUMIMAGES, model_path)
 
-    # Must call MPI finalize when process exit without exceptions
-    Communicator.finalize()
+    if _DISTRIBUTED:
+        # Must call MPI finalize when process exit without exceptions
+        Communicator.finalize()
 
 
 if __name__ == '__main__':
