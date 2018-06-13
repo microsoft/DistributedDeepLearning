@@ -222,7 +222,7 @@ def _create_labels(batch_size, num_batches, n_classes):
     return np.random.choice(n_classes, batch_size * num_batches)
 
 
-def _create_fake_data_fn(train_length=1287000, valid_length=50000):
+def _create_fake_data_fn(train_length=1281167, valid_length=50000):
     logger.info('Creating fake data')
 
     def fake_data_generator(num_batches=20):

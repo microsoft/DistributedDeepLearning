@@ -92,7 +92,7 @@ def _training_data_iterator_from():
     return train_iter
 
 def _fake_data_iterator_from():
-    return FakeDataGenerator(batch_size=_BATCHSIZE, n_classes=1000, length=1287000)
+    return FakeDataGenerator(batch_size=_BATCHSIZE, n_classes=1000, length=1281167)
 
 
 
