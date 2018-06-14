@@ -51,6 +51,11 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     rm get-pip.py
 
+ # Set default NCCL parameters
+RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf && \
+    echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+
 # Install TensorFlow and Keras
 RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy jupyter ipykernel numpy toolz pandas \
  	scikit-learn keras pillow
