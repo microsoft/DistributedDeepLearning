@@ -46,7 +46,7 @@ def _str_to_bool(in_str):
     else:
         return False
 
-_DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'True'))
+_DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 
 def _get_progress_printer():
     pp = ProgressPrinter(
@@ -161,8 +161,9 @@ def train_and_test(network, trainer, train_source, test_source, minibatch_size,
         network['feature']: train_source.streams.features,
         network['label']: train_source.streams.labels
     }
-    
-    start_profiler(sync_gpu=True)
+    if _DISTRIBUTED:
+        start_profiler(sync_gpu=True)
+        
     training_session(
         trainer=trainer,
         mb_source=train_source,
@@ -175,7 +176,8 @@ def train_and_test(network, trainer, train_source, test_source, minibatch_size,
                                            restore=False)  # ,
         # test_config=TestConfig(test_source, minibatch_size)
     ).train()
-    stop_profiler()
+    if _DISTRIBUTED:
+        stop_profiler()
 
 
 def main():
@@ -228,6 +230,8 @@ def main():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logger.info("Starting routine")
+    if _DISTRIBUTED:
+        logger.info("Using distributed mode")
     main()
     logger.info("Routine finished")
     
