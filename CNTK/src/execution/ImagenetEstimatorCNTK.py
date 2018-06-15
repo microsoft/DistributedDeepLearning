@@ -24,7 +24,9 @@ from resnet_models import *
 import cntk.io.transforms as xforms
 import logging
 
+
 logger = logging.getLogger(__name__)
+
 
 # model dimensions
 _WIDTH = 224
@@ -40,13 +42,16 @@ _NUMQUANTIZEDBITS = 32
 _WD = 0.0001
 _NUMIMAGES = 1281167
 
+
 def _str_to_bool(in_str):
     if 't' in in_str.lower():
         return True
     else:
         return False
 
+    
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
+
 
 def _get_progress_printer():
     pp = ProgressPrinter(
@@ -185,16 +190,11 @@ def main():
     data_path = os.getenv('AZ_BATCHAI_INPUT_TRAIN')
     logger.info("model_path: {}".format(model_path))
     logger.info("data_path: {}".format(data_path))
+    
     mean_data = os.path.join(data_path, 'ImageNet1K_mean.xml')
     train_data = os.path.join(data_path, 'train_map.txt')
     test_data = os.path.join(data_path, 'val_map.txt')
-    logger.info("AZ_BATCHAI_NUM_GPUS={}".format(os.getenv('AZ_BATCHAI_NUM_GPUS')))
-    logger.info("AZ_BATCHAI_WORKER_HOSTS={}".format(os.getenv('AZ_BATCHAI_WORKER_HOSTS')))
-    
-    #set_computation_network_trace_level(0)
-    logger.info("mean_data: {}".format(mean_data))
-    #logger.info("communicator num_workers {}".format(Communicator.num_workers()))
-    #logger.info(type(Communicator.num_workers()))
+
     if _DISTRIBUTED:
         minibatch_size = _BATCHSIZE * Communicator.num_workers()
     else:
