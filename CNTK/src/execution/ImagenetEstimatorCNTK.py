@@ -229,9 +229,7 @@ def main():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    logger.info("Starting routine")
-    if _DISTRIBUTED:
-        logger.info("Using distributed mode")
+    logger.info("Starting routine. Distributed mode={}".format(_DISTRIBUTED))
     main()
     logger.info("Routine finished")
     
