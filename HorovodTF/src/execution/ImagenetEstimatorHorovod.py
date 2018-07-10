@@ -270,10 +270,10 @@ def _get_runconfig(is_distributed=_DISTRIBUTED):
         config.gpu_options.allow_growth = True
         config.gpu_options.visible_device_list = str(hvd.local_rank())
 
-        return tf.estimator.RunConfig(save_checkpoints_steps=10000,
+        return tf.estimator.RunConfig(save_checkpoints_steps=None, save_checkpoints_secs=None,
                                       session_config=config)
     else:
-        return tf.estimator.RunConfig(save_checkpoints_steps=10000)
+        return tf.estimator.RunConfig(save_checkpoints_steps=None)
 
 
 def _get_model_dir(is_distributed=_DISTRIBUTED):
