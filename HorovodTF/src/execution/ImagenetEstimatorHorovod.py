@@ -42,6 +42,7 @@ def _str_to_bool(in_str):
 
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
+_DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
 
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
@@ -303,6 +304,18 @@ def _is_master(is_distributed=_DISTRIBUTED):
         return True
 
 
+def _log_summary(data_length, duration):
+    images_per_second = data_length / duration
+    logger.info('Data length:      {}'.format(data_length))
+    logger.info('Total duration:   {:.3f}'.format(duration))
+    logger.info('Total images/sec: {:.3f}'.format(images_per_second))
+    logger.info('Batch size:       (Per GPU {}: Total {})'.format(_BATCHSIZE, hvd.size()*_BATCHSIZE if _DISTRIBUTED else _BATCHSIZE))
+    logger.info('Distributed:      {}'.format('True' if _DISTRIBUTED else 'False'))
+    logger.info('Num GPUs:         {:.3f}'.format(hvd.size() if _DISTRIBUTED else 1))
+    logger.info('Dataset:          {}'.format('Synthetic' if _FAKE else 'Imagenet'))
+
+
+
 def main():
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
@@ -328,13 +341,15 @@ def main():
 
     hooks = _get_hooks()
 
-    with Timer(output=logger.info, prefix="Training"):
+    with Timer(output=logger.info, prefix="Training") as t:
         logger.info('Training...')
         model.train(input_fn=train_input_fn,
                     steps=_EPOCHS * train_input_fn.length // (_BATCHSIZE*hvd.size()),
                     hooks=hooks)
 
-    if _is_master():
+    _log_summary(_EPOCHS * train_input_fn.length, t.elapsed)
+
+    if _is_master() and _FAKE is False:
         with Timer(output=logger.info, prefix="Testing"):
             logger.info('Testing...')
             model.evaluate(input_fn=validation_input_fn)
