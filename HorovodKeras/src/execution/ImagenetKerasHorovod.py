@@ -89,8 +89,8 @@ def _training_data_iterator_from():
                                                target_size=(224, 224))
     return train_iter
 
-def _fake_data_iterator_from(length=):
-    return FakeDataGenerator(batch_size=_BATCHSIZE, n_classes=1000, length=1281167)
+def _fake_data_iterator_from(length=_DATA_LENGTH):
+    return FakeDataGenerator(batch_size=_BATCHSIZE, n_classes=1000, length=length)
 
 
 
