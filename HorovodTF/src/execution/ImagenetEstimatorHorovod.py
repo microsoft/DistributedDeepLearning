@@ -28,7 +28,7 @@ _HEIGHT = 224
 _CHANNELS = 3
 _LR = 0.001
 _EPOCHS = 1
-_BATCHSIZE = 128
+_BATCHSIZE = 64
 _R_MEAN = 123.68
 _G_MEAN = 116.78
 _B_MEAN = 103.94
@@ -118,15 +118,16 @@ def model_fn(features, labels, mode, params):
     with slim.arg_scope(nets.resnet_v1.resnet_arg_scope()):
         logits, _ = resnet_v1_50(features,
                                  num_classes=params['classes'])
-        logits = tf.reshape(logits, shape=[-1, params['classes']])
+        # logits = tf.reshape(logits, shape=[-1, params['classes']])
 
-    # Softmax output of the neural network.
-    y_pred = tf.nn.softmax(logits=logits)
-
-    # Classification output of the neural network.
-    y_pred_cls = tf.argmax(y_pred, axis=1)
 
     if mode == tf.estimator.ModeKeys.PREDICT:
+        # Softmax output of the neural network.
+        y_pred = tf.nn.softmax(logits=logits)
+
+        # Classification output of the neural network.
+        y_pred_cls = tf.argmax(y_pred, axis=1)
+
         predictions = {
             'class_ids': y_pred_cls,
             'probabilities': y_pred,
@@ -139,6 +140,12 @@ def model_fn(features, labels, mode, params):
     loss = tf.reduce_mean(cross_entropy)
 
     if mode == tf.estimator.ModeKeys.EVAL:
+        # Softmax output of the neural network.
+        y_pred = tf.nn.softmax(logits=logits)
+
+        # Classification output of the neural network.
+        y_pred_cls = tf.argmax(y_pred, axis=1)
+
         accuracy = tf.metrics.accuracy(labels=tf.argmax(labels, axis=1),
                                        predictions=y_pred_cls,
                                        name='acc_op')
