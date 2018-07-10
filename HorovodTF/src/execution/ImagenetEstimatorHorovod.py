@@ -32,7 +32,7 @@ _BATCHSIZE = 64
 _R_MEAN = 123.68
 _G_MEAN = 116.78
 _B_MEAN = 103.94
-_BUFFER = 10
+_BUFFER = 20
 
 def _str_to_bool(in_str):
     if 't' in in_str.lower():
@@ -270,7 +270,8 @@ def _get_runconfig(is_distributed=_DISTRIBUTED):
         config.gpu_options.allow_growth = True
         config.gpu_options.visible_device_list = str(hvd.local_rank())
 
-        return tf.estimator.RunConfig(save_checkpoints_steps=None, save_checkpoints_secs=None,
+        return tf.estimator.RunConfig(save_checkpoints_steps=None,
+                                      save_checkpoints_secs=None,
                                       session_config=config)
     else:
         return tf.estimator.RunConfig(save_checkpoints_steps=None)
