@@ -45,7 +45,7 @@ def _str_to_bool(in_str):
 
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
-_DATA_LENGTH = os.getenv('FAKE_DATA_LENGTH', 1281167) # How much fake data to simulate, default to size of imagenet dataset
+_DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
 
 if _DISTRIBUTED:
     import horovod.keras as hvd
