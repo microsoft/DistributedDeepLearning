@@ -243,7 +243,7 @@ def main():
                             # validation_data=test_iter,
                             # validation_steps=3 * len(test_iter) // hvd.size())
 
-    _log_summary(len(train_iter), t.elapsed)
+    _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
 
     # # Evaluate the model on the full data set.
     # with Timer(output=logger.info, prefix="Testing"):
