@@ -219,11 +219,11 @@ def _create_data_fn(train_path, test_path):
 
 
 def _create_data(batch_size, num_batches, dim, channels, seed=42):
-    np.random.seed(42)
+    np.random.seed(seed)
     return np.random.rand(batch_size * num_batches,
+                          channels,
                           dim[0],
-                          dim[1],
-                          channels).astype(np.float32)
+                          dim[1]).astype(np.float32)
 
 
 def _create_labels(batch_size, num_batches, n_classes):
@@ -243,7 +243,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
 
     train_data = tf.data.Dataset().from_generator(fake_data_generator,
                                                   output_types=(tf.float32, tf.int32),
-                                                  output_shapes=(tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS]), tf.TensorShape([None])))
+                                                  output_shapes=(tf.TensorShape([None,_CHANNELS, _WIDTH, _HEIGHT]), tf.TensorShape([None])))
 
     train_data = (train_data.shuffle(20*_BATCHSIZE)
                             .repeat()
@@ -251,7 +251,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
 
     validation_data = tf.data.Dataset().from_generator(fake_data_generator,
                                                   output_types=(tf.float32, tf.int32),
-                                                  output_shapes=(tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS]),
+                                                  output_shapes=(tf.TensorShape([None,_CHANNELS, _WIDTH, _HEIGHT]),
                                                                  tf.TensorShape([None])))
 
     validation_data = (validation_data.prefetch(_BUFFER))
