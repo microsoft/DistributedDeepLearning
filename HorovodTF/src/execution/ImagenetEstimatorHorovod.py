@@ -118,7 +118,7 @@ def model_fn(features, labels, mode, params):
     with slim.arg_scope(nets.resnet_v1.resnet_arg_scope()):
         logits, _ = resnet_v1_50(features,
                                  num_classes=params['classes'])
-        # logits = tf.reshape(logits, shape=[-1, params['classes']])
+        logits = tf.reshape(logits, shape=[-1, params['classes']])
 
 
     if mode == tf.estimator.ModeKeys.PREDICT:
