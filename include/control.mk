@@ -93,20 +93,20 @@ create-fileshare: set-storage
 #
 
 
-
-!az batchai cluster create \
---name nc24r \
---image UbuntuLTS \
---vm-size Standard_NC24r \
---min 4 --max 4 \
---afs-name $FILESHARE_NAME \
---afs-mount-path extfs \
---user-name mat \
---password dnstvxrz \
---storage-account-name $STORAGE_ACCOUNT_NAME \
---storage-account-key $storage_account_key \
---nfs $NFS_NAME \
---nfs-mount-path nfs
+#
+#!az batchai cluster create \
+#--name nc24r \
+#--image UbuntuLTS \
+#--vm-size Standard_NC24r \
+#--min 4 --max 4 \
+#--afs-name $FILESHARE_NAME \
+#--afs-mount-path extfs \
+#--user-name mat \
+#--password dnstvxrz \
+#--storage-account-name $STORAGE_ACCOUNT_NAME \
+#--storage-account-key $storage_account_key \
+#--nfs $NFS_NAME \
+#--nfs-mount-path nfs
 
 create-workspace:
 	az batchai workspace create -n $(WORKSPACE) -g $(GROUP_NAME)
