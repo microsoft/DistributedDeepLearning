@@ -45,12 +45,10 @@ def _str_to_bool(in_str):
 
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
+_DATA_LENGTH = os.getenv('FAKE_DATA_LENGTH', 1281167) # How much fake data to simulate, default to size of imagenet dataset
 
 if _DISTRIBUTED:
     import horovod.keras as hvd
-
-
-
 
 
 def _create_model():
@@ -91,7 +89,7 @@ def _training_data_iterator_from():
                                                target_size=(224, 224))
     return train_iter
 
-def _fake_data_iterator_from():
+def _fake_data_iterator_from(length=):
     return FakeDataGenerator(batch_size=_BATCHSIZE, n_classes=1000, length=1281167)
 
 
@@ -165,6 +163,16 @@ def _is_master(is_distributed=_DISTRIBUTED):
     else:
         return True
 
+def _log_summary(data_length, duration):
+    images_per_second = data_length / duration
+    logger.info('Data length:      {}'.format(data_length))
+    logger.info('Total duration:   {:.3f}'.format(duration))
+    logger.info('Total images/sec: {:.3f}'.format(images_per_second))
+    logger.info('Batch size:       (Per GPU {}: Total {})'.format(_BATCHSIZE, hvd.size()*_BATCHSIZE if _DISTRIBUTED else _BATCHSIZE))
+    logger.info('Distributed:      {}'.format('True' if _DISTRIBUTED else 'False'))
+    logger.info('Num GPUs:         {:.3f}'.format(hvd.size() if _DISTRIBUTED else 1))
+    logger.info('Dataset:          {}'.format('Synthetic' if _FAKE else 'Imagenet'))
+
 
 def main():
     verbose=0
@@ -218,7 +226,7 @@ def main():
         model.load_weights(checkpoint_format.format(epoch=resume_from_epoch))
 
 
-    with Timer(output=logger.info, prefix="Training"):
+    with Timer(output=logger.info, prefix="Total training time: ", fmt="{:.3f} seconds") as t:
         logger.info('Training...')
         # Train the model. The training will randomly sample 1 / N batches of training data and
         # 3 / N batches of validation data on every worker, where N is the number of workers.
@@ -234,6 +242,8 @@ def main():
                             initial_epoch=resume_from_epoch)
                             # validation_data=test_iter,
                             # validation_steps=3 * len(test_iter) // hvd.size())
+
+    _log_summary(len(train_iter), t.elapsed)
 
     # # Evaluate the model on the full data set.
     # with Timer(output=logger.info, prefix="Testing"):
