@@ -32,7 +32,7 @@ GPU_TYPE:=V100
 EXPERIMENT:=experiment_${GPU_TYPE}
 PROCESSES_PER_NODE:=4
 NFS_NAME:="batch${ID}nfs"
-
+FAKE_DATA_LENGTH:=1281167
 name_prefix:=masalvar
 tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
 
@@ -56,6 +56,7 @@ define execute_mpi
  $(setup_environment) \
  --env DISTRIBUTED='True' \
  --env FAKE=$(FAKE) \
+ --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
  --privileged \
  $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetKerasHorovod.py"
 endef
@@ -66,6 +67,7 @@ define execute_mpi_intel
  $(setup_environment) \
  --env DISTRIBUTED='True' \
  --env FAKE=$(FAKE) \
+ --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
  --privileged \
  $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetKerasHorovod.py"
 endef
@@ -76,6 +78,7 @@ define execute
  $(setup_environment) \
  --env DISTRIBUTED='False' \
  --env FAKE=$(FAKE) \
+ --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
  $(1) bash -c "python /mnt/script/ImagenetKerasHorovod.py"
 endef
 
@@ -85,6 +88,7 @@ define execute-ipython
  $(setup_environment) \
  --env DISTRIBUTED='False' \
  --env FAKE=$(FAKE) \
+ --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
  $(1) bash -c "ipython"
 endef
 
