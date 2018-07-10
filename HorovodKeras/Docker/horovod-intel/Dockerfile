@@ -63,5 +63,5 @@ RUN pip install --no-cache-dir tensorflow-gpu==$TENSORFLOW_VERSION h5py scipy ju
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
     /bin/bash -c "source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh" && \
-    HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir horovod==0.13.2 && \
+    HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir horovod==0.13.2 && \
     ldconfig
