@@ -158,7 +158,8 @@ class FakeData(Dataset):
         logger.debug('Retrieving samples')
         logger.debug(str(idx))
         tr_index_array = self.translation_index[idx]
-        print('****'), print(self._data.shape)
+        logger.debug('*****')
+        logger.debug(self._data.shape)
         if self._transform is not None:
             data=self._transform(self._data[tr_index_array])
         else:
