@@ -225,9 +225,9 @@ def _create_data_fn(train_path, test_path):
 def _create_data(batch_size, num_batches, dim, channels, seed=42):
     np.random.seed(seed)
     return np.random.rand(batch_size * num_batches,
+                          channels,
                           dim[0],
-                          dim[1],
-                          channels,).astype(np.float32)
+                          dim[1]).astype(np.float32)
 
 
 def _create_labels(batch_size, num_batches, n_classes):
