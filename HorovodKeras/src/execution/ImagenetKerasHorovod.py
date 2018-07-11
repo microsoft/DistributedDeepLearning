@@ -253,7 +253,7 @@ def main():
                         verbose=verbose,
                         workers=10,
                         max_queue_size=20,
-                        use_multiprocessing=False,
+                        use_multiprocessing=True,
                         initial_epoch=resume_from_epoch)
 
     # _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
