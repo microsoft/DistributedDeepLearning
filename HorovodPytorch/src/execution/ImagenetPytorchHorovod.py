@@ -160,6 +160,7 @@ class FakeData(Dataset):
         tr_index_array = self.translation_index[idx]
         logger.debug('*****')
         logger.debug(self._data.shape)
+        logger.debug(self._data[tr_index_array].shape)
         if self._transform is not None:
             data=self._transform(self._data[tr_index_array])
         else:
