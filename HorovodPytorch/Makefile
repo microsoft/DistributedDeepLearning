@@ -35,11 +35,14 @@ define execute_mpi
  $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetPytorchHorovod.py"
 endef
 
+
 define execute_mpi_intel
  nvidia-docker run --shm-size 8G -it \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
+ --env FAKE=$(FAKE) \
+ --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
  --privileged \
  $(1) bash -c " source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; mpirun -n 2 -host localhost -ppn 2 -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 -env I_MPI_DYNAMIC_CONNECTION=0 python /mnt/script/ImagenetPytorchHorovod.py"
 endef
