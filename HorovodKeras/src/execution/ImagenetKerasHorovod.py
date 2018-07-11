@@ -21,6 +21,7 @@ from keras import backend as K
 from keras.preprocessing import image
 import tensorflow as tf
 import os
+from toolz import curry
 
 _WIDTH = 224
 _HEIGHT = 224
@@ -125,12 +126,10 @@ def _get_model_dir(is_distributed=_DISTRIBUTED):
 
 
 def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
-    batch_print_callback = keras.callbacks.LambdaCallback(
-        on_epoch_end=lambda epoch, logs: print(epoch, logs))
+
     if is_distributed:
         logger.info('Rank: {} Cluster Size {}'.format(hvd.local_rank(), hvd.size()))
         return [
-            batch_print_callback,
             # Horovod: broadcast initial variable states from rank 0 to all other processes.
             # This is necessary to ensure consistent initialization of all workers when
             # training is started with random weights or restored from a checkpoint.
@@ -156,6 +155,14 @@ def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
     else:
         return []
 
+@curry
+def _epoch_begin(timer, epoch, logs):
+    timer.start()
+
+@curry
+def _epoch_end(timer, data_length, epoch, logs):
+    duration = timer.elapsed()
+    _log_summary(data_length, duration)
 
 def _is_master(is_distributed=_DISTRIBUTED):
     if is_distributed:
@@ -218,6 +225,10 @@ def main():
     checkpoint_format = os.path.join(model_dir, 'checkpoint-{epoch}.h5')
 
     callbacks = _get_hooks()
+    timer = Timer(output=logger.info, prefix="Total training time: ", fmt="{:.3f} seconds")
+    callbacks.append(keras.callbacks.LambdaCallback(on_epoch_begin=_epoch_begin(timer),
+                                                    on_epoch_end=_epoch_end(timer, len(train_iter)*_BATCHSIZE)))
+
     # Horovod: save checkpoints only on the first worker to prevent other workers from corrupting them.
     if _is_master():
         callbacks.append(keras.callbacks.ModelCheckpoint(checkpoint_format))
@@ -246,7 +257,7 @@ def main():
                             # validation_data=test_iter,
                             # validation_steps=3 * len(test_iter) // hvd.size())
 
-    _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
+    # _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
 
     # # Evaluate the model on the full data set.
     # with Timer(output=logger.info, prefix="Testing"):
