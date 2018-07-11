@@ -59,7 +59,7 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
 #    fi; \
 
 # Install PyTorch
-RUN pip install http://download.pytorch.org/whl/cu90/torch-${PYTORCH_VERSION}-cp${PY}-cp${PY}m-linux_x86_64.whl && \
+RUN pip install http://download.pytorch.org/whl/cu90/torch-3.5-cp35-cp35m-linux_x86_64.whl && \
 	pip install --no-cache-dir torchvision h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn pillow
 
 # Install Horovod, temporarily using CUDA stubs
