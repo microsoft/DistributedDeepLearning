@@ -162,6 +162,7 @@ class FakeData(Dataset):
             data=self._transform(self._data[tr_index_array])
         else:
             data=self._data[tr_index_array]
+        print(data.shape)
         return data, self._labels[tr_index_array]
 
     def __len__(self):
