@@ -21,7 +21,13 @@ from keras import backend as K
 from keras.preprocessing import image
 import tensorflow as tf
 import os
-from toolz import curry
+
+
+def _str_to_bool(in_str):
+    if 't' in in_str.lower():
+        return True
+    else:
+        return False
 
 _WIDTH = 224
 _HEIGHT = 224
@@ -38,12 +44,9 @@ _BUFFER = 10
 _WARMUP_EPOCHS = 5
 _WEIGHT_DECAY = 0.00005
 
-def _str_to_bool(in_str):
-    if 't' in in_str.lower():
-        return True
-    else:
-        return False
-
+_NUM_WORKERS=int(os.getenv('NUM_WORKERS', 10))
+_MAX_QUEUE_SIZE=int(os.getenv('MAX_QUEUE_SIZE', 10))
+_MULTIPROCESSING=_str_to_bool(os.getenv('MULTIPROCESSING', 'False'))
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
 _DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
@@ -251,9 +254,9 @@ def main():
                         callbacks=callbacks,
                         epochs=_EPOCHS,
                         verbose=verbose,
-                        workers=10,
-                        max_queue_size=10,
-                        use_multiprocessing=False,
+                        workers=_NUM_WORKERS,
+                        max_queue_size=_MAX_QUEUE_SIZE,
+                        use_multiprocessing=_MULTIPROCESSING,
                         initial_epoch=resume_from_epoch)
 
     # _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
