@@ -151,14 +151,14 @@ class FakeData(Dataset):
         # self._labels = np.random.rand(length, num_classes).astype(np.float32)
 
         self._transform = transform
-        logger.info("Creating fake data {} labels and {} images".format(len(self._labels), len(self._data)))
+        logger.info("Creating fake data {} labels and {} images".format(n_classes, len(self._data)))
 
     def __getitem__(self, idx):
         logger = _get_logger()
         logger.debug('Retrieving samples')
         logger.debug(str(idx))
         tr_index_array = self.translation_index[idx]
-        if self.transform is not None:
+        if self._transform is not None:
             data=self._transform(self._data[tr_index_array])
         else:
             data=self._data[tr_index_array]
