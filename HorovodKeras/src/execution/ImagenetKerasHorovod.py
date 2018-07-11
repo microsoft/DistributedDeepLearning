@@ -155,14 +155,18 @@ def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
     else:
         return []
 
-@curry
-def _epoch_begin(timer, epoch, logs):
-    timer.start()
+class LoggerCallback(keras.callbacks.Callback):
 
-@curry
-def _epoch_end(timer, data_length, epoch, logs):
-    duration = timer.elapsed
-    _log_summary(data_length, duration)
+    def __init__(self, logger, data_length):
+        self._timer = Timer(output=logger.info, prefix="Epoch duration: ", fmt="{:.3f} seconds")
+        self._data_length=data_length
+
+    def on_epoch_begin(self, epoch, logs):
+        self._timer.start()
+
+    def on_epoch_end(self, epoch, logs):
+        duration = self._timer.elapsed
+        _log_summary(self._data_length, duration)
 
 def _is_master(is_distributed=_DISTRIBUTED):
     if is_distributed:
@@ -205,8 +209,7 @@ def main():
         train_iter = _fake_data_iterator_from()
     else:
         train_iter = _training_data_iterator_from()
-
-    # test_iter = _validation_data_iterator_from()
+        test_iter = _validation_data_iterator_from()
 
     model = _create_model()
 
@@ -225,9 +228,7 @@ def main():
     checkpoint_format = os.path.join(model_dir, 'checkpoint-{epoch}.h5')
 
     callbacks = _get_hooks()
-    timer = Timer(output=logger.info, prefix="Total training time: ", fmt="{:.3f} seconds")
-    callbacks.append(keras.callbacks.LambdaCallback(on_epoch_begin=_epoch_begin(timer),
-                                                    on_epoch_end=_epoch_end(timer, len(train_iter)*_BATCHSIZE)))
+    callbacks.append(LoggerCallback(logger, len(train_iter)*_BATCHSIZE))
 
     # Horovod: save checkpoints only on the first worker to prevent other workers from corrupting them.
     if _is_master():
@@ -239,33 +240,29 @@ def main():
     if resume_from_epoch > 0 and _is_master():
         model.load_weights(checkpoint_format.format(epoch=resume_from_epoch))
 
-
-    with Timer(output=logger.info, prefix="Total training time: ", fmt="{:.3f} seconds") as t:
-        logger.info('Training...')
-        # Train the model. The training will randomly sample 1 / N batches of training data and
-        # 3 / N batches of validation data on every worker, where N is the number of workers.
-        # Over-sampling of validation data helps to increase probability that every validation
-        # example will be evaluated.
-        num_workers = hvd.size() if _DISTRIBUTED else 1
-        model.fit_generator(train_iter,
-                            steps_per_epoch=len(train_iter) // num_workers,
-                            callbacks=callbacks,
-                            epochs=_EPOCHS,
-                            verbose=verbose,
-                            workers=4,
-                            initial_epoch=resume_from_epoch)
-                            # validation_data=test_iter,
-                            # validation_steps=3 * len(test_iter) // hvd.size())
+    logger.info('Training...')
+    # Train the model. The training will randomly sample 1 / N batches of training data and
+    # 3 / N batches of validation data on every worker, where N is the number of workers.
+    # Over-sampling of validation data helps to increase probability that every validation
+    # example will be evaluated.
+    num_workers = hvd.size() if _DISTRIBUTED else 1
+    model.fit_generator(train_iter,
+                        steps_per_epoch=len(train_iter) // num_workers,
+                        callbacks=callbacks,
+                        epochs=_EPOCHS,
+                        verbose=verbose,
+                        workers=10,
+                        initial_epoch=resume_from_epoch)
 
     # _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
-
-    # # Evaluate the model on the full data set.
-    # with Timer(output=logger.info, prefix="Testing"):
-    #     logger.info('Testing...')
-    #     score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=4))
-    #     if verbose:
-    #         print('Test loss:', score[0])
-    #     print('Test accuracy:', score[1])
+    if _FAKE is False:
+        # Evaluate the model on the full data set.
+        with Timer(output=logger.info, prefix="Testing"):
+            logger.info('Testing...')
+            score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=10))
+            if verbose:
+                print('Test loss:', score[0])
+            print('Test accuracy:', score[1])
 
 
 if __name__ == '__main__':
