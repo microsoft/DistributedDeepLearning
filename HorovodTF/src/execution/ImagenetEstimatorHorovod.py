@@ -59,7 +59,7 @@ def _load_image(filename, channels=_CHANNELS):
 
 
 def _resize(img, width=_WIDTH, height=_HEIGHT):
-    return tf.image.resize_images(img, [width, height])
+    return tf.image.resize_images(img, [height, width])
 
 
 def _centre(img, mean_subtraction=(_R_MEAN, _G_MEAN, _B_MEAN)):
@@ -84,18 +84,24 @@ def _preprocess_images(filename):
 def _preprocess_labels(label):
     return tf.cast(label, dtype=tf.int32)
 
+def _transform_to_NCHW(img):
+    return tf.transpose(img, [0, 3, 1, 2]) # Transform from NHWC to NCHW
+
 
 def _parse_function_train(filename, label):
     img_rgb = pipe(filename,
                    _preprocess_images,
                    _random_crop,
-                   _random_horizontal_flip)
+                   _random_horizontal_flip,
+                   _transform_to_NCHW)
 
     return img_rgb, _preprocess_labels(label)
 
 
 def _parse_function_eval(filename, label):
-    return _preprocess_images(filename), _preprocess_labels(label)
+    return pipe(filename,
+                _preprocess_images,
+                _transform_to_NCHW), _preprocess_labels(label)
 
 
 def _get_optimizer(params, is_distributed=_DISTRIBUTED):
@@ -229,10 +235,14 @@ def _create_labels(batch_size, num_batches, n_classes):
 
 
 def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
+    """ Creates fake dataset
+
+    Data is returned in NCHW since this tends to be faster on GPUs
+    """
     logger.info('Creating fake data')
 
     def fake_data_generator(num_batches=20):
-        data_array = _create_data(_BATCHSIZE, num_batches, (_WIDTH, _HEIGHT), _CHANNELS)
+        data_array = _create_data(_BATCHSIZE, num_batches, (_HEIGHT, _WIDTH), _CHANNELS)
         labels_array = _create_labels(_BATCHSIZE, num_batches, 1000)
 
         for i in range(num_batches):
@@ -240,7 +250,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
 
     train_data = tf.data.Dataset().from_generator(fake_data_generator,
                                                   output_types=(tf.float32, tf.int32),
-                                                  output_shapes=(tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS,]),
+                                                  output_shapes=(tf.TensorShape([None, _CHANNELS, _HEIGHT, _WIDTH]),
                                                                  tf.TensorShape([None])))
 
     train_data = (train_data.shuffle(20 * _BATCHSIZE)
@@ -250,7 +260,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
     validation_data = tf.data.Dataset().from_generator(fake_data_generator,
                                                        output_types=(tf.float32, tf.int32),
                                                        output_shapes=(
-                                                           tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS]),
+                                                           tf.TensorShape([None, _CHANNELS, _HEIGHT, _WIDTH]),
                                                            tf.TensorShape([None])))
 
     validation_data = (validation_data.prefetch(_BUFFER))
