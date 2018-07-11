@@ -161,7 +161,7 @@ def _epoch_begin(timer, epoch, logs):
 
 @curry
 def _epoch_end(timer, data_length, epoch, logs):
-    duration = timer.elapsed()
+    duration = timer.elapsed
     _log_summary(data_length, duration)
 
 def _is_master(is_distributed=_DISTRIBUTED):
