@@ -125,9 +125,12 @@ def _get_model_dir(is_distributed=_DISTRIBUTED):
 
 
 def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
+    batch_print_callback = hvd.callbacks.LambdaCallback(
+        on_batch_begin=lambda batch, logs: print(batch, logs))
     if is_distributed:
         logger.info('Rank: {} Cluster Size {}'.format(hvd.local_rank(), hvd.size()))
         return [
+            batch_print_callback,
             # Horovod: broadcast initial variable states from rank 0 to all other processes.
             # This is necessary to ensure consistent initialization of all workers when
             # training is started with random weights or restored from a checkpoint.
