@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from timer import Timer
-
+import numpy as np
 import os
 from PIL import Image
 
@@ -27,6 +27,12 @@ import pandas as pd
 from torch.utils.data import Dataset
 from torch.autograd import Variable
 import torch.nn.functional as F
+
+def _str_to_bool(in_str):
+    if 't' in in_str.lower():
+        return True
+    else:
+        return False
 
 _WIDTH = 224
 _HEIGHT = 224
@@ -42,11 +48,11 @@ _SEED=42
 _WARMUP_EPOCHS = 5
 _WEIGHT_DECAY = 0.00005
 
-def _str_to_bool(in_str):
-    if 't' in in_str.lower():
-        return True
-    else:
-        return False
+_FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
+_DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
+
+
+
 
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 
@@ -107,6 +113,61 @@ class ImageNet(Dataset):
         return len(self.img_locs)
 
 
+def _get_logger():
+    return logging.getLogger(__name__)
+
+def _create_data(batch_size, num_batches, dim, channels, seed=42):
+    np.random.seed(seed)
+    return np.random.rand(batch_size * num_batches,
+                          channels,
+                          dim[0],
+                          dim[1]).astype(np.float32)
+
+
+def _create_labels(batch_size, num_batches, n_classes):
+    return np.random.choice(n_classes, batch_size * num_batches).astype(np.float32)
+
+
+
+class FakeData(Dataset):
+    def __init__(self,
+                 batch_size=32,
+                 num_batches=20,
+                 dim=(224, 224),
+                 n_channels=3,
+                 n_classes=10,
+                 length=_DATA_LENGTH,
+                 seed=42,
+                 transform=None):
+        self.dim = dim
+        self.n_channels = n_channels
+        self.n_classes = n_classes
+        self.num_batches = num_batches
+        self._data = _create_data(batch_size, self.num_batches, self.dim, self.n_channels)
+        self._labels = _create_labels(batch_size, self.num_batches, self.n_classes)
+        self.translation_index = np.random.choice(len(self._labels), length)
+        self._length=length
+        # self._data = np.random.rand(length, 3, 224, 224).astype(np.float32)
+        # self._labels = np.random.rand(length, num_classes).astype(np.float32)
+
+        self._transform = transform
+        logger.info("Creating fake data {} labels and {} images".format(len(self.labels), len(self.img_locs)))
+
+    def __getitem__(self, idx):
+        logger = _get_logger()
+        logger.debug('Retrieving samples')
+        logger.debug(str(idx))
+        tr_index_array = self.translation_index[idx]
+        if self.transform is not None:
+            data=self._transform(self._data[tr_index_array])
+        else:
+            data=self._data[tr_index_array]
+        return data, self._labels[tr_index_array]
+
+    def __len__(self):
+        return self._length
+
+
 def _is_master(is_distributed=_DISTRIBUTED):
     if is_distributed:
         if hvd.rank() == 0:
@@ -139,6 +200,18 @@ def train(train_loader, model, criterion, optimizer, epoch):
             t.__enter__()
 
 
+def _log_summary(data_length, duration):
+    images_per_second = data_length / duration
+    logger.info('Data length:      {}'.format(data_length))
+    logger.info('Total duration:   {:.3f}'.format(duration))
+    logger.info('Total images/sec: {:.3f}'.format(images_per_second))
+    logger.info('Batch size:       (Per GPU {}: Total {})'.format(_BATCHSIZE, hvd.size()*_BATCHSIZE if _DISTRIBUTED else _BATCHSIZE))
+    logger.info('Distributed:      {}'.format('True' if _DISTRIBUTED else 'False'))
+    logger.info('Num GPUs:         {:.3f}'.format(hvd.size() if _DISTRIBUTED else 1))
+    logger.info('Dataset:          {}'.format('Synthetic' if _FAKE else 'Imagenet'))
+
+
+
 def main():
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
@@ -151,19 +224,23 @@ def main():
 
     logger.info("PyTorch version {}".format(torch.__version__))
 
-    normalize = transforms.Normalize(_RGB_MEAN, _RGB_SD)
+    if _FAKE:
+        logger.info("Setting up fake loaders")
+        train_dataset = FakeData(n_classes=1000, transform=transforms.ToTensor())
+    else:
+        normalize = transforms.Normalize(_RGB_MEAN, _RGB_SD)
 
-    train_X, train_y, valid_X, valid_y = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), os.getenv('AZ_BATCHAI_INPUT_TEST'))
+        train_X, train_y, valid_X, valid_y = _create_data_fn(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), os.getenv('AZ_BATCHAI_INPUT_TEST'))
 
-    logger.info("Setting up loaders")
-    train_dataset = ImageNet(
-        train_X,
-        train_y,
-        transforms.Compose([
-            transforms.RandomResizedCrop(_WIDTH),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize]))
+        logger.info("Setting up loaders")
+        train_dataset = ImageNet(
+            train_X,
+            train_y,
+            transforms.Compose([
+                transforms.RandomResizedCrop(_WIDTH),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize]))
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
@@ -195,11 +272,12 @@ def main():
     criterion=None
     # Main training-loop
     for epoch in range(_EPOCHS):
-        with Timer(output=logger.info, prefix="Training"):
+        with Timer(output=logger.info, prefix="Training") as t:
             model.train()
             train_sampler.set_epoch(epoch)
             train(train_loader, model, criterion, optimizer, epoch)
 
+        _log_summary(len(train_dataset), t.elapsed)
 
 if __name__ == '__main__':
     main()
