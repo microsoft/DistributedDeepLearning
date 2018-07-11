@@ -9,7 +9,7 @@ AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 from timer import Timer
@@ -158,6 +158,7 @@ class FakeData(Dataset):
         logger.debug('Retrieving samples')
         logger.debug(str(idx))
         tr_index_array = self.translation_index[idx]
+        print(self._data.shape)
         if self._transform is not None:
             data=self._transform(self._data[tr_index_array])
         else:
