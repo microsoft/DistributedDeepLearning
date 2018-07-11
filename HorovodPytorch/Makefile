@@ -11,6 +11,25 @@ Usage:
 endef
 export PROJECT_HELP_MSG
 
+ID:=ddl
+LOCATION:=eastus
+GROUP_NAME:=batch${ID}rg
+STORAGE_ACCOUNT_NAME:=batch${ID}st
+CONTAINER_NAME:=batch${ID}container
+FILE_SHARE_NAME:=batch${ID}share
+VM_SIZE:=Standard_NC24rs_v3
+NUM_NODES:=8
+CLUSTER_NAME:=msv100
+JOB_NAME:=horovod_keras
+SELECTED_SUBSCRIPTION:="Team Danielle Internal"
+WORKSPACE:=workspace
+GPU_TYPE:=V100
+EXPERIMENT:=experiment_${GPU_TYPE}
+PROCESSES_PER_NODE:=4
+NFS_NAME:="batch${ID}nfs"
+FAKE_DATA_LENGTH:=1281167
+name_prefix:=masalvar
+
 DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
 setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
