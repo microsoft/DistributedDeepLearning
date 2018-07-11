@@ -151,7 +151,7 @@ class FakeData(Dataset):
         # self._labels = np.random.rand(length, num_classes).astype(np.float32)
 
         self._transform = transform
-        logger.info("Creating fake data {} labels and {} images".format(len(self.labels), len(self.img_locs)))
+        logger.info("Creating fake data {} labels and {} images".format(len(self._labels), len(self._data)))
 
     def __getitem__(self, idx):
         logger = _get_logger()
