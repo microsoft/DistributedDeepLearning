@@ -22,7 +22,6 @@ from toolz import pipe
 from timer import Timer
 import numpy as np
 
-
 _WIDTH = 224
 _HEIGHT = 224
 _CHANNELS = 3
@@ -34,19 +33,21 @@ _G_MEAN = 116.78
 _B_MEAN = 103.94
 _BUFFER = 40
 
+
 def _str_to_bool(in_str):
     if 't' in in_str.lower():
         return True
     else:
         return False
 
+
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
-_DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
+_DATA_LENGTH = int(
+    os.getenv('FAKE_DATA_LENGTH', 1281167))  # How much fake data to simulate, default to size of imagenet dataset
 
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
-
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +121,6 @@ def model_fn(features, labels, mode, params):
                                  num_classes=params['classes'])
         logits = tf.reshape(logits, shape=[-1, params['classes']])
 
-
     if mode == tf.estimator.ModeKeys.PREDICT:
         # Softmax output of the neural network.
         y_pred = tf.nn.softmax(logits=logits)
@@ -151,19 +151,17 @@ def model_fn(features, labels, mode, params):
                                        name='acc_op')
         metrics = {'accuracy': accuracy}
         tf.summary.scalar('accuracy', accuracy[1])
-        return tf.estimator.EstimatorSpec(
-            mode=mode,
-            eval_metric_ops=metrics,
-            loss=loss)
+        return tf.estimator.EstimatorSpec(mode=mode,
+                                          eval_metric_ops=metrics,
+                                          loss=loss)
 
     optimizer = _get_optimizer(params)
 
     train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
 
-    return tf.estimator.EstimatorSpec(
-        mode=mode,
-        loss=loss,
-        train_op=train_op)
+    return tf.estimator.EstimatorSpec(mode=mode,
+                                      loss=loss,
+                                      train_op=train_op)
 
 
 def _append_path_to(data_path, data_series):
@@ -189,20 +187,20 @@ def _create_data_fn(train_path, test_path):
     logger.info('Reading validation data info')
     validation_df = _load_validation(test_path)
 
-    train_labels=train_df[['num_id']].values.ravel()-1
-    validation_labels=validation_df[['num_id']].values.ravel()-1
+    train_labels = train_df[['num_id']].values.ravel() - 1
+    validation_labels = validation_df[['num_id']].values.ravel() - 1
 
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
     train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE)
     train_data = (train_data.shuffle(len(train_df))
-                            .repeat()
-                            .apply(train_data_transform)
-                            .prefetch(_BUFFER))
+                  .repeat()
+                  .apply(train_data_transform)
+                  .prefetch(_BUFFER))
 
     validation_data = tf.data.Dataset.from_tensor_slices((validation_df['filenames'].values, validation_labels))
     validation_data_transform = tf.contrib.data.map_and_batch(_parse_function_eval, _BATCHSIZE)
     validation_data = (validation_data.apply(validation_data_transform)
-                                      .prefetch(_BUFFER))
+                       .prefetch(_BUFFER))
 
     def _train_input_fn():
         return train_data.make_one_shot_iterator().get_next()
@@ -221,9 +219,9 @@ def _create_data_fn(train_path, test_path):
 def _create_data(batch_size, num_batches, dim, channels, seed=42):
     np.random.seed(seed)
     return np.random.rand(batch_size * num_batches,
-                          channels,
                           dim[0],
-                          dim[1]).astype(np.float32)
+                          dim[1],
+                          channels,).astype(np.float32)
 
 
 def _create_labels(batch_size, num_batches, n_classes):
@@ -234,25 +232,26 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
     logger.info('Creating fake data')
 
     def fake_data_generator(num_batches=20):
-
         data_array = _create_data(_BATCHSIZE, num_batches, (_WIDTH, _HEIGHT), _CHANNELS)
         labels_array = _create_labels(_BATCHSIZE, num_batches, 1000)
 
         for i in range(num_batches):
-            yield data_array[i*_BATCHSIZE:(i+1)*_BATCHSIZE], labels_array[i*_BATCHSIZE:(i+1)*_BATCHSIZE]
+            yield data_array[i * _BATCHSIZE:(i + 1) * _BATCHSIZE], labels_array[i * _BATCHSIZE:(i + 1) * _BATCHSIZE]
 
     train_data = tf.data.Dataset().from_generator(fake_data_generator,
                                                   output_types=(tf.float32, tf.int32),
-                                                  output_shapes=(tf.TensorShape([None,_CHANNELS, _WIDTH, _HEIGHT]), tf.TensorShape([None])))
+                                                  output_shapes=(tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS,]),
+                                                                 tf.TensorShape([None])))
 
-    train_data = (train_data.shuffle(20*_BATCHSIZE)
-                            .repeat()
-                            .prefetch(_BUFFER))
+    train_data = (train_data.shuffle(20 * _BATCHSIZE)
+                  .repeat()
+                  .prefetch(_BUFFER))
 
     validation_data = tf.data.Dataset().from_generator(fake_data_generator,
-                                                  output_types=(tf.float32, tf.int32),
-                                                  output_shapes=(tf.TensorShape([None,_CHANNELS, _WIDTH, _HEIGHT]),
-                                                                 tf.TensorShape([None])))
+                                                       output_types=(tf.float32, tf.int32),
+                                                       output_shapes=(
+                                                           tf.TensorShape([None, _WIDTH, _HEIGHT, _CHANNELS]),
+                                                           tf.TensorShape([None])))
 
     validation_data = (validation_data.prefetch(_BUFFER))
 
@@ -317,11 +316,11 @@ def _log_summary(data_length, duration):
     logger.info('Data length:      {}'.format(data_length))
     logger.info('Total duration:   {:.3f}'.format(duration))
     logger.info('Total images/sec: {:.3f}'.format(images_per_second))
-    logger.info('Batch size:       (Per GPU {}: Total {})'.format(_BATCHSIZE, hvd.size()*_BATCHSIZE if _DISTRIBUTED else _BATCHSIZE))
+    logger.info('Batch size:       (Per GPU {}: Total {})'.format(_BATCHSIZE,
+                                                                  hvd.size() * _BATCHSIZE if _DISTRIBUTED else _BATCHSIZE))
     logger.info('Distributed:      {}'.format('True' if _DISTRIBUTED else 'False'))
     logger.info('Num GPUs:         {:.3f}'.format(hvd.size() if _DISTRIBUTED else 1))
     logger.info('Dataset:          {}'.format('Synthetic' if _FAKE else 'Imagenet'))
-
 
 
 def main():
@@ -352,7 +351,7 @@ def main():
     with Timer(output=logger.info, prefix="Training") as t:
         logger.info('Training...')
         model.train(input_fn=train_input_fn,
-                    steps=_EPOCHS * train_input_fn.length // (_BATCHSIZE*hvd.size()),
+                    steps=_EPOCHS * train_input_fn.length // (_BATCHSIZE * hvd.size()),
                     hooks=hooks)
 
     _log_summary(_EPOCHS * train_input_fn.length, t.elapsed)
