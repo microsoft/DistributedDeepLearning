@@ -85,7 +85,7 @@ def _preprocess_labels(label):
     return tf.cast(label, dtype=tf.int32)
 
 def _transform_to_NCHW(img):
-    return tf.transpose(img, [3, 1, 2]) # Transform from NHWC to NCHW
+    return tf.transpose(img, [2, 0, 1]) # Transform from NHWC to NCHW
 
 
 def _parse_function_train(filename, label):
