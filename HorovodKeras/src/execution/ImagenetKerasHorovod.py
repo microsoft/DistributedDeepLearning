@@ -251,8 +251,8 @@ def main():
                         callbacks=callbacks,
                         epochs=_EPOCHS,
                         verbose=verbose,
-                        workers=10,
-                        max_queue_size=20,
+                        workers=5,
+                        max_queue_size=10,
                         use_multiprocessing=True,
                         initial_epoch=resume_from_epoch)
 
