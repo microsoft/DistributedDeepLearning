@@ -46,7 +46,7 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
 name_prefix:=masalvar
 
 define execute_mpi
- nvidia-docker run -it \
+ nvidia-docker run --shm-size 8G -it \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
