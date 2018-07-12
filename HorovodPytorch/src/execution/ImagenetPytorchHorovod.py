@@ -138,7 +138,8 @@ class FakeData(Dataset):
                  n_classes=10,
                  length=_DATA_LENGTH,
                  seed=42,
-                 transform=None):
+                 data_transform=None,
+                 label_transform=None):
         self.dim = dim
         self.n_channels = n_channels
         self.n_classes = n_classes
@@ -150,7 +151,8 @@ class FakeData(Dataset):
         # self._data = np.random.rand(length, 3, 224, 224).astype(np.float32)
         # self._labels = np.random.rand(length, num_classes).astype(np.float32)
 
-        self._transform = transform
+        self._data_transform = data_transform
+        self._label_transform = label_transform
         logger.info("Creating fake data {} labels and {} images".format(n_classes, len(self._data)))
 
     def __getitem__(self, idx):
@@ -161,12 +163,19 @@ class FakeData(Dataset):
         logger.debug('*****')
         logger.debug(self._data.shape)
         logger.debug(self._data[tr_index_array].shape)
-        if self._transform is not None:
-            data=self._transform(self._data[tr_index_array])
+
+        if self._data_transform is not None:
+            data=self._data_transform(self._data[tr_index_array])
         else:
             data=self._data[tr_index_array]
+
+        if self._label_transform is not None:
+            label=self._label_transform(self._labels[tr_index_array])
+        else:
+            label=self._labels[tr_index_array]
+
         logger.debug(data.shape)
-        return data, self._labels[tr_index_array]
+        return data, label
 
     def __len__(self):
         return self._length
@@ -231,7 +240,7 @@ def main():
 
     if _FAKE:
         logger.info("Setting up fake loaders")
-        train_dataset = FakeData(n_classes=1000, transform=torch.FloatTensor)
+        train_dataset = FakeData(n_classes=1000, data_transform=torch.FloatTensor, label_transform=torch.LongTensor)
     else:
         normalize = transforms.Normalize(_RGB_MEAN, _RGB_SD)
 
