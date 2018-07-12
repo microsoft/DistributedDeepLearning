@@ -47,6 +47,8 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
 
 name_prefix:=masalvar
 tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
+intel-image:=$(name_prefix)/horovod-intel:$(tag)
+open-image:=$(name_prefix)/horovod:$(tag)
 
 define execute_mpi
  nvidia-docker run -it \
