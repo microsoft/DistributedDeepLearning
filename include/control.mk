@@ -62,7 +62,7 @@ define delete_job
 endef
 
 define upload_script
-	az storage file upload --share-name $FILESHARE_NAME --source $(1) --path scripts --account-name $(azure_storage_account) --account $(azure_storage_key)
+	az storage file upload --share-name $FILESHARE_NAME --source $(1) --path scripts --account-name $(azure_storage_account) --account-key $(azure_storage_key)
 endef
 
 select-subscription:
