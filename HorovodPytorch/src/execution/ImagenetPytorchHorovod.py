@@ -138,8 +138,7 @@ class FakeData(Dataset):
                  n_classes=10,
                  length=_DATA_LENGTH,
                  seed=42,
-                 data_transform=None,
-                 label_transform=None):
+                 data_transform=None):
         self.dim = dim
         self.n_channels = n_channels
         self.n_classes = n_classes
@@ -152,7 +151,6 @@ class FakeData(Dataset):
         # self._labels = np.random.rand(length, num_classes).astype(np.float32)
 
         self._data_transform = data_transform
-        self._label_transform = label_transform
         logger.info("Creating fake data {} labels and {} images".format(n_classes, len(self._data)))
 
     def __getitem__(self, idx):
@@ -169,13 +167,8 @@ class FakeData(Dataset):
         else:
             data=self._data[tr_index_array]
 
-        if self._label_transform is not None:
-            label=self._label_transform([self._labels[tr_index_array]])[0]
-        else:
-            label=self._labels[tr_index_array]
-
         logger.debug(data.shape)
-        return data, label
+        return data, self._labels[tr_index_array]
 
     def __len__(self):
         return self._length
