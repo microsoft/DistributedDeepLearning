@@ -79,6 +79,11 @@ def generate_job_dict(image_name,
                                               hosts=_hosts_for(mpitype, node_count) )
             },
             "stdOutErrPathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+            "inputDirectories": [{
+                "id": "SCRIPTS",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/extfs/scripts"
+                },
+            ],
             "containerSettings": {
                 "imageSourceRegistry": {
                     "image": image_name

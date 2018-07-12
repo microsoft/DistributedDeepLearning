@@ -49,6 +49,7 @@ name_prefix:=masalvar
 tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
 intel-image:=$(name_prefix)/horovod-intel:$(tag)
 open-image:=$(name_prefix)/horovod:$(tag)
+script:=$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetEstimatorHorovod.py
 
 define execute_mpi
  nvidia-docker run -it \
@@ -80,14 +81,6 @@ define execute
  --env FAKE=$(FAKE) \
  --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
  $(1) bash -c "python /mnt/script/ImagenetEstimatorHorovod.py"
-endef
-
-define generate_job_intel
- python ../generate_job_spec.py $(intel-image) intelmpi \
- 	/mnt/script/ImagenetEstimatorHorovod.py
- 	--filename job.json \
- 	--node_count $(1)\
- 	--ppn $(2)
 endef
 
 help:
