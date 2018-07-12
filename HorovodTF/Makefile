@@ -86,7 +86,7 @@ define generate_job_intel
  python ../generate_job_spec.py $(intel-image) intelmpi \
  	/mnt/script/ImagenetEstimatorHorovod.py
  	--filename job.json \
- 	--node_count $(1) \
+ 	--node_count $(1)\
  	--ppn $(2)
 endef
 
