@@ -186,25 +186,23 @@ def _is_master(is_distributed=_DISTRIBUTED):
 
 def train(train_loader, model, criterion, optimizer, epoch):
     logger.info("Training ...")
+    msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
     t=Timer()
-    t.__enter__()
+    t.start()
     for i, (data, target) in enumerate(train_loader):
         data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
-        # data, target = Variable(data), Variable(target)
-        # target = target.cuda(non_blocking=True)
 
         # compute output
         output = model(data)
-        loss = F.cross_entropy(output, target)
-        # loss = criterion(output, target)
+        loss = criterion(output, target)
+
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         if i % 100 == 0:
-            msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
             logger.info(msg.format(epoch, t.elapsed, loss.item(), i * len(data)))
-            t.__enter__()
+            t.start()
 
 
 def _log_summary(data_length, duration):
@@ -252,7 +250,7 @@ def main():
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
 
-    kwargs = {'num_workers': 3, 'pin_memory': True}
+    kwargs = {'num_workers': 0, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
@@ -282,7 +280,7 @@ def main():
         with Timer(output=logger.info, prefix="Training") as t:
             model.train()
             train_sampler.set_epoch(epoch)
-            train(train_loader, model, criterion, optimizer, epoch)
+            train(train_loader, model, F.cross_entropy, optimizer, epoch)
 
         _log_summary(len(train_dataset), t.elapsed)
 
