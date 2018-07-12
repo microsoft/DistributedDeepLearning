@@ -126,7 +126,7 @@ push-intel:
 
 include ../include/*.mk
 
-upload-scripts:
+upload-scripts: set-storage
 	$(call upload_script, src/execution/ImagenetKerasHorovod.py)
 	$(call upload_script, src/execution/data_generator.py)
 	$(call upload_script, src/execution/timer.py)
