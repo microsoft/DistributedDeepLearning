@@ -189,20 +189,21 @@ def train(train_loader, model, criterion, optimizer, epoch):
     t=Timer()
     t.__enter__()
     for i, (data, target) in enumerate(train_loader):
-        data, target = data.cuda(), target.cuda()
-        data, target = Variable(data), Variable(target)
+        data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
+        # data, target = Variable(data), Variable(target)
         # target = target.cuda(non_blocking=True)
-        optimizer.zero_grad()
+
         # compute output
         output = model(data)
         loss = F.cross_entropy(output, target)
         # loss = criterion(output, target)
         # compute gradient and do SGD step
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         if i % 100 == 0:
             msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
-            logger.info(msg.format(epoch, t.elapsed, loss.data[0], i * len(data)))
+            logger.info(msg.format(epoch, t.elapsed, loss.item(), i * len(data)))
             t.__enter__()
 
 
@@ -251,7 +252,7 @@ def main():
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
 
-    kwargs = {'num_workers': 1, 'pin_memory': True}
+    kwargs = {'num_workers': 5, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
