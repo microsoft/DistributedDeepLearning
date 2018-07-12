@@ -191,7 +191,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
     for i, (data, target) in enumerate(train_loader):
         data, target = data.cuda(), target.cuda()
         data, target = Variable(data), Variable(target)
-        print(data.shape)
         # target = target.cuda(non_blocking=True)
         optimizer.zero_grad()
         # compute output
