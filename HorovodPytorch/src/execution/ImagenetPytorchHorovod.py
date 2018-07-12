@@ -125,7 +125,7 @@ def _create_data(batch_size, num_batches, dim, channels, seed=42):
 
 
 def _create_labels(batch_size, num_batches, n_classes):
-    return np.random.choice(n_classes, batch_size * num_batches).astype(np.float32)
+    return np.random.choice(n_classes, batch_size * num_batches).astype(np.int)
 
 
 
