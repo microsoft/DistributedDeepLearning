@@ -21,12 +21,12 @@ endef
 export PROJECT_HELP_MSG
 
 
-define generate_job_intel
- python ../generate_job_spec.py $(1) intelmpi \
- 	--filename job.json \
- 	--node_count $(2) \
- 	--ppn $(3)
-endef
+#define generate_job_intel
+# python ../generate_job_spec.py $(1) intelmpi \
+# 	--filename job.json \
+# 	--node_count $(2) \
+# 	--ppn $(3)
+#endef
 
 
 define generate_job_openmpi
@@ -139,11 +139,11 @@ list-nodes:
 
 
 run-bait-intel:
-	$(call generate_job_intel, $(intel-image), $(NUM_NODES), $(PROCESSES_PER_NODE))
+	$(call generate_job_intel, $(NUM_NODES), $(PROCESSES_PER_NODE))
 	$(call submit_job, ${JOB_NAME})
 
 run-bait-openmpi:
-	$(call generate_job_openmpi, $(open-image), $(NUM_NODES), $(PROCESSES_PER_NODE))
+	$(call generate_job_openmpi, $(NUM_NODES), $(PROCESSES_PER_NODE))
 	$(call submit_job, ${JOB_NAME})
 
 run-bait-local:
