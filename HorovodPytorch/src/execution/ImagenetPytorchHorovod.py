@@ -9,7 +9,7 @@ AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from timer import Timer
