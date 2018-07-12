@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
         libdapl2 \
         libcudnn7=${CUDNN_VERSION} \
+        libnccl2=${NCCL_VERSION} \
+        libnccl-dev=${NCCL_VERSION} \
         libjpeg-dev \
         libpng-dev \
         libmlx4-1 \
