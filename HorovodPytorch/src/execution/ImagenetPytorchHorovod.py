@@ -231,7 +231,7 @@ def main():
 
     if _FAKE:
         logger.info("Setting up fake loaders")
-        train_dataset = FakeData(n_classes=1000, transform=transforms.ToTensor())
+        train_dataset = FakeData(n_classes=1000, transform=torch.FloatTensor())
     else:
         normalize = transforms.Normalize(_RGB_MEAN, _RGB_SD)
 
