@@ -31,8 +31,8 @@ FAKE_DATA_LENGTH:=1281167
 
 name_prefix:=masalvar
 tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
-intel-image:=$(name_prefix)/horovod-pytorch-intel:$(tag)
-open-image:=$(name_prefix)/horovod-pytorch:$(tag)
+intel-image:=$(name_prefix)/horovod-pytorch-intel
+open-image:=$(name_prefix)/horovod-pytorch
 script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetPytorchHorovod.py
 
 DATA_DIR:=/mnt/imagenet
