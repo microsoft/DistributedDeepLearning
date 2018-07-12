@@ -170,9 +170,9 @@ class FakeData(Dataset):
             data=self._data[tr_index_array]
 
         if self._label_transform is not None:
-            label=self._label_transform(self._labels[tr_index_array])
+            label=self._label_transform([self._labels[tr_index_array]])
         else:
-            label=self._labels[tr_index_array]
+            label=[self._labels[tr_index_array]]
 
         logger.debug(data.shape)
         return data, label
