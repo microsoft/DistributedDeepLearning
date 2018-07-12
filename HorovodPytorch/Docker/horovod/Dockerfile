@@ -32,7 +32,6 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     rm get-pip.py
 
-RUN pip install h5py
 
 # Install PyTorch
 RUN PY=$(echo ${PYTHON_VERSION} | sed s/\\.//); \
@@ -41,7 +40,8 @@ RUN PY=$(echo ${PYTHON_VERSION} | sed s/\\.//); \
     else \
         pip install http://download.pytorch.org/whl/cu90/torch-${PYTORCH_VERSION}-cp${PY}-cp${PY}mu-linux_x86_64.whl; \
     fi; \
-    pip install torchvision
+    pip install --no-cache-dir torchvision h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn pillow
+
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi && \
