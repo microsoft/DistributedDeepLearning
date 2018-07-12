@@ -17,7 +17,7 @@ mpirun -n {total_processes} -ppn {processes_per_node} {hosts}
 -env I_MPI_DEBUG=6 
 -env I_MPI_HYDRA_DEBUG=on 
 -env DISTRIBUTED=True 
--env FAKE=True
+-env FAKE=True 
 python {script}""".replace('\n', '')
 
 # Config for OpenMPI
@@ -32,7 +32,7 @@ mpirun -np {total_processes}
 -mca btl ^openib 
 -x NCCL_IB_DISABLE=1 
 -x DISTRIBUTED=True 
--x FAKE=True
+-x FAKE=True 
 --allow-run-as-root 
 {hosts} 
 python {script}""".replace('\n', '')

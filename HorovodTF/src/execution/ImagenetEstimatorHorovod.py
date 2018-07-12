@@ -1,4 +1,12 @@
+"""
+Trains ResNet50 using Horovod.
 
+It requires the following env variables
+AZ_BATCHAI_INPUT_TRAIN
+AZ_BATCHAI_INPUT_TEST
+AZ_BATCHAI_OUTPUT_MODEL
+AZ_BATCHAI_JOB_TEMP_DIR
+"""
 import logging
 
 logging.basicConfig(level=logging.INFO)
