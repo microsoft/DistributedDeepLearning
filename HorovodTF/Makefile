@@ -109,7 +109,7 @@ push-intel:
 
 include ../include/*.mk
 
-upload-scripts:
+upload-scripts: set-storage
 	$(call upload_script, execution/ImagenetEstimatorHorovod.py)
 	$(call upload_script, execution/timer.py)
 
