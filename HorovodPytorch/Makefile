@@ -20,7 +20,7 @@ FILE_SHARE_NAME:=batch${ID}share
 VM_SIZE:=Standard_NC24rs_v3
 NUM_NODES:=8
 CLUSTER_NAME:=msv100
-JOB_NAME:=horovod_keras
+JOB_NAME:=horovod_pytorch
 SELECTED_SUBSCRIPTION:="Team Danielle Internal"
 WORKSPACE:=workspace
 GPU_TYPE:=V100
@@ -28,7 +28,12 @@ EXPERIMENT:=experiment_${GPU_TYPE}
 PROCESSES_PER_NODE:=4
 NFS_NAME:="batch${ID}nfs"
 FAKE_DATA_LENGTH:=1281167
+
 name_prefix:=masalvar
+tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
+intel-image:=$(name_prefix)/horovod-pytorch-intel:$(tag)
+open-image:=$(name_prefix)/horovod-pytorch:$(tag)
+script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetPytorchHorovod.py
 
 DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
@@ -43,7 +48,6 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
 	--env AZ_BATCHAI_OUTPUT_MODEL='/mnt/model' \
 	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output'
 
-name_prefix:=masalvar
 
 define execute_mpi
  nvidia-docker run --shm-size 8G -it \
@@ -99,5 +103,10 @@ push:
 push-intel:
 	docker push $(name_prefix)/horovod-intel-pytorch
 
+include ../include/*.mk
+
+upload-scripts: set-storage
+	$(call upload_script, src/execution/ImagenetPytorchHorovod.py)
+	$(call upload_script, src/execution/timer.py)
 
 .PHONY: help build push
