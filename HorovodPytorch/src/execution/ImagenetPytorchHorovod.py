@@ -192,12 +192,14 @@ def train(train_loader, model, criterion, optimizer, epoch):
     for i, (data, target) in enumerate(train_loader):
         data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
 
+        optimizer.zero_grad()
+
         # compute output
         output = model(data)
         loss = criterion(output, target)
 
         # compute gradient and do SGD step
-        optimizer.zero_grad()
+
         loss.backward()
         optimizer.step()
         if i % 100 == 0:
@@ -250,7 +252,7 @@ def main():
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
 
-    kwargs = {'num_workers': 3, 'pin_memory': True}
+    kwargs = {'num_workers': 4, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
