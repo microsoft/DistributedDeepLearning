@@ -50,6 +50,8 @@ define execute_mpi
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
+ --env FAKE=$(FAKE) \
+ --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
  --privileged \
  $(1) bash -c "mpirun -np 2 -H localhost:2 python /mnt/script/ImagenetPytorchHorovod.py"
 endef
