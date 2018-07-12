@@ -33,9 +33,12 @@ EXPERIMENT:=experiment_${GPU_TYPE}
 PROCESSES_PER_NODE:=4
 NFS_NAME:="batch${ID}nfs"
 FAKE_DATA_LENGTH:=1281167
+
 name_prefix:=masalvar
 tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
-
+intel-image:=$(name_prefix)/horovod-intel-keras:$(tag)
+open-image:=$(name_prefix)/horovod-keras:$(tag)
+script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetKerasHorovod.py
 
 setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
 	-v $(DATA_DIR):/mnt/input \
@@ -124,8 +127,8 @@ push-intel:
 include ../include/*.mk
 
 upload-scripts:
-	$(call upload_script, execution/ImagenetKerasHorovod.py)
-	$(call upload_script, execution/data_generator.py)
-	$(call upload_script, execution/timer.py)
+	$(call upload_script, src/execution/ImagenetKerasHorovod.py)
+	$(call upload_script, src/execution/data_generator.py)
+	$(call upload_script, src/execution/timer.py)
 
 .PHONY: help build push
