@@ -49,7 +49,7 @@ name_prefix:=masalvar
 tag:=9-1.8-.13.2 # Cuda - TF version - Horovod version
 intel-image:=$(name_prefix)/horovod-intel:$(tag)
 open-image:=$(name_prefix)/horovod:$(tag)
-script:=$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetEstimatorHorovod.py
+script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetEstimatorHorovod.py
 
 define execute_mpi
  nvidia-docker run -it \
