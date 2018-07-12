@@ -147,8 +147,6 @@ class FakeData(Dataset):
         self._labels = _create_labels(batch_size, self.num_batches, self.n_classes)
         self.translation_index = np.random.choice(len(self._labels), length)
         self._length=length
-        # self._data = np.random.rand(length, 3, 224, 224).astype(np.float32)
-        # self._labels = np.random.rand(length, num_classes).astype(np.float32)
 
         self._data_transform = data_transform
         logger.info("Creating fake data {} labels and {} images".format(n_classes, len(self._data)))
@@ -158,16 +156,12 @@ class FakeData(Dataset):
         logger.debug('Retrieving samples')
         logger.debug(str(idx))
         tr_index_array = self.translation_index[idx]
-        logger.debug('*****')
-        logger.debug(self._data.shape)
-        logger.debug(self._data[tr_index_array].shape)
 
         if self._data_transform is not None:
             data=self._data_transform(self._data[tr_index_array])
         else:
             data=self._data[tr_index_array]
 
-        logger.debug(data.shape)
         return data, self._labels[tr_index_array]
 
     def __len__(self):
@@ -199,7 +193,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss = criterion(output, target)
 
         # compute gradient and do SGD step
-
         loss.backward()
         optimizer.step()
         if i % 100 == 0:
@@ -257,7 +250,7 @@ def main():
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
     # Autotune
-    # cudnn.benchmark = True
+    cudnn.benchmark = True
 
     logger.info("Loading model")
     # Load symbol
