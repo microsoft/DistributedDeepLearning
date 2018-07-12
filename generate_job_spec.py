@@ -84,6 +84,11 @@ def generate_job_dict(image_name,
                 "path": "$AZ_BATCHAI_MOUNT_ROOT/extfs/scripts"
                 },
             ],
+            "outputDirectories": [{
+                "id": "MODEL",
+                "pathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+                "pathSuffix": "Models"
+            }],
             "containerSettings": {
                 "imageSourceRegistry": {
                     "image": image_name
