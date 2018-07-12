@@ -252,7 +252,7 @@ def main():
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
 
-    kwargs = {'num_workers': 5, 'pin_memory': True}
+    kwargs = {'num_workers': 3, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
