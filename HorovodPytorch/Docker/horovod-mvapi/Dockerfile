@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		libc-dev \
 		wget
 
-COPY MVAPICH2 .
+COPY MVAPICH2/ /MVAPICH2/
 
 RUN for DIR in bin include lib libexec share; do mv -f MVAPICH2/$DIR/* /usr/local/$DIR/; done
 
