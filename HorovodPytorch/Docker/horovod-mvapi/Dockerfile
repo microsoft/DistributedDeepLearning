@@ -31,9 +31,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY MVAPICH2 .
 
-RUN for DIR in bin include lib libexec share;\
-	do; \
-		mv -f  MVAPICH2/$DIR/*   /usr/local/$DIR/; \
+RUN for DIR in bin include lib libexec share\
+	do \
+		mv -f  MVAPICH2/$DIR/*   /usr/local/$DIR/ \
 	done;
 
 ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
