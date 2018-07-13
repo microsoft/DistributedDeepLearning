@@ -36,6 +36,7 @@ RUN for DIR in bin include lib libexec share; do chmod 777 /usr/local/$DIR/; don
 
 ENV PATH $PATH:/usr/local/bin
 ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
+RUN export PATH=$PATH:/usr/local/bin
 RUN export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 #RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz && \
 #	tar xvf qperf-0.4.9.tar.gz &&\
