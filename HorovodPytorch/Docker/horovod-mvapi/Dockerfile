@@ -43,7 +43,7 @@ RUN export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 #	cd qperf-0.4.9 &&\
 #	./configure &&\
 #	make
-
+RUN ldconfig
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         cmake \
