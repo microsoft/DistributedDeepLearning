@@ -94,6 +94,9 @@ run-mpi:
 run-mpi-intel:
 	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-pytorch)
 
+build-mvapi:
+	docker build -t $(name_prefix)/horovod-mvapi:$(tag) Docker/horovod-mvapi
+
 run:
 	$(call execute, $(name_prefix)/horovod-pytorch)
 

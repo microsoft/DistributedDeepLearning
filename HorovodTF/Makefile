@@ -92,9 +92,6 @@ build:
 build-intel:
 	docker build -t $(name_prefix)/horovod-intel:$(tag) Docker/horovod-intel
 
-build-mvapi:
-	docker build -t $(name_prefix)/horovod-mvapi:$(tag) Docker/horovod-mvapi
-
 run-mpi:
 	$(call execute_mpi, $(name_prefix)/horovod:$(tag))
 
