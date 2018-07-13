@@ -34,8 +34,9 @@ COPY MVAPICH2/ /MVAPICH2/
 RUN for DIR in bin include lib libexec share; do mv -f MVAPICH2/$DIR/* /usr/local/$DIR/; done
 RUN for DIR in bin include lib libexec share; do chmod 777 /usr/local/$DIR/; done
 
+ENV PATH $PATH:/usr/local/bin
 ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
-
+RUN export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 #RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz && \
 #	tar xvf qperf-0.4.9.tar.gz &&\
 #	cd qperf-0.4.9 &&\
