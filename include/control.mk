@@ -32,9 +32,10 @@ endef
 
 define generate_job_openmpi
  python ../generate_job_spec.py $(1) openmpi \
+ 	$(2) \
  	--filename job.json \
- 	--node_count $(2) \
- 	--ppn $(3)
+ 	--node_count $(3) \
+ 	--ppn $(4)
 endef
 
 
