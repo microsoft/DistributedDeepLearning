@@ -18,7 +18,7 @@ mpirun -n {total_processes} -ppn {processes_per_node} {hosts}
 -env I_MPI_HYDRA_DEBUG=on 
 -env DISTRIBUTED=True 
 -env FAKE=True 
-python {script}""".replace('\n', '')
+python -u {script}""".replace('\n', '')
 
 # Config for OpenMPI
 cmd_for_openmpi =  \
@@ -35,7 +35,7 @@ mpirun -np {total_processes}
 -x FAKE=True 
 --allow-run-as-root 
 {hosts} 
-python {script}""".replace('\n', '')
+python -u {script}""".replace('\n', '')
 
 # Running on single node without mpi
 cmd_local="""python {script}""".replace('\n', '')
