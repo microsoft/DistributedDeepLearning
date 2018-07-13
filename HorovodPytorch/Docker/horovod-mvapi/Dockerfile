@@ -12,6 +12,7 @@ RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repo
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+		build-essential \
 		gcc \
 		gfortran \
 		g++ \
