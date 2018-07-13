@@ -13,18 +13,18 @@ RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repo
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		gcc \
-		gcc-gfortran \
-		gcc-c++ \
+		gfortran \
+		g++ \
 		patch \
 		perl \
-		perl-Digest-MD5 \
+		libdigest-md5-file-perl \
 		byacc \
 		infiniband-diags \
 		perftest \
 		qperf \
 		opensm \
-		libibverbs \
-		libibverbs-devel
+		libibverbs1 \
+		libibverbs-dev
 
 #
 #RUN apt-get update && apt-get install -y --no-install-recommends \
