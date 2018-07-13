@@ -112,6 +112,11 @@ create-directory: set-storage
 #--nfs $NFS_NAME \
 #--nfs-mount-path nfs
 
+upload-nodeprep-scripts: set-storage
+	$(call upload_script, ../cluster_config/cluster.json)
+	$(call upload_script, ../cluster_config/docker.service)
+	$(call upload_script, ../cluster_config/nodeprep.sh)
+
 create-workspace:
 	az batchai workspace create -n $(WORKSPACE) -g $(GROUP_NAME)
 
@@ -130,7 +135,8 @@ create-cluster: set-storage
 	--user-name mat \
 	--password dnstvxrz \
 	--storage-account-name $(STORAGE_ACCOUNT_NAME) \
-	--storage-account-key $(azure_storage_key)
+	--storage-account-key $(azure_storage_key) \
+	-c ../cluster_config/cluster.json
 
 show-cluster:
 	az batchai cluster show -n ${CLUSTER_NAME} -w $(WORKSPACE)
