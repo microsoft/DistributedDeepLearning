@@ -21,10 +21,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		byacc \
 		infiniband-diags \
 		perftest \
-		qperf \
 		opensm \
 		libibverbs1 \
-		libibverbs-dev
+		libibverbs-dev \
+		make \
+		libc-dev
+
+RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz && \
+	tar xvf qperf-0.4.9.tar.gz &&\
+	cd qperf-0.4.9 &&\
+	./configure &&\
+	make
 
 #
 #RUN apt-get update && apt-get install -y --no-install-recommends \
