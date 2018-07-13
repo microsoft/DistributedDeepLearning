@@ -41,30 +41,30 @@ ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
 #	./configure &&\
 #	make
 
-#
-#RUN apt-get update && apt-get install -y --no-install-recommends \
-#        cmake \
-#        git \
-#        curl \
-#        vim \
-#        ca-certificates \
-#        libcudnn7=${CUDNN_VERSION} \
-#        libjpeg-dev \
-#        libpng-dev \
-#        python${PYTHON_VERSION} \
-#        python${PYTHON_VERSION}-dev
-#
-#RUN ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
-#
-#RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
-#    python get-pip.py && \
-#    rm get-pip.py
-#
-#
-## Install PyTorch
-#RUN pip install http://download.pytorch.org/whl/cu90/torch-0.4.0-cp35-cp35m-linux_x86_64.whl && \
-#	pip install --no-cache-dir torchvision h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn pillow
-#
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        cmake \
+        git \
+        curl \
+        vim \
+        ca-certificates \
+        libcudnn7=${CUDNN_VERSION} \
+        libjpeg-dev \
+        libpng-dev \
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-dev
+
+RUN ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
+
+RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
+    python get-pip.py && \
+    rm get-pip.py
+
+
+# Install PyTorch
+RUN pip install http://download.pytorch.org/whl/cu90/torch-0.4.0-cp35-cp35m-linux_x86_64.whl && \
+	pip install --no-cache-dir torchvision h5py scipy jupyter ipykernel numpy toolz pandas scikit-learn pillow
+
 ## Install Open MPI
 #RUN mkdir /tmp/openmpi && \
 #    cd /tmp/openmpi && \
@@ -76,24 +76,24 @@ ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
 #    make install && \
 #    ldconfig && \
 #    rm -rf /tmp/openmpi
-#
-## Install Horovod, temporarily using CUDA stubs
-#RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
-#    HOROVOD_GPU_ALLREDUCE=MPI HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.2 && \
-#    ldconfig
 
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
+    HOROVOD_GPU_ALLREDUCE=MPI HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.8 && \
+    ldconfig
+#
 ## Create a wrapper for OpenMPI to allow running as root by default
 #RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
 #    echo '#!/bin/bash' > /usr/local/bin/mpirun && \
 #    echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun && \
 #    chmod a+x /usr/local/bin/mpirun
-
+#
 ## Configure OpenMPI to run good defaults:
 ##   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
 #RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
 #    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf #&& \
 ##    echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
-#
+
 ## Set default NCCL parameters
 #RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf && \
 #    echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
