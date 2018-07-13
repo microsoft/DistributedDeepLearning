@@ -25,7 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		libibverbs1 \
 		libibverbs-dev \
 		make \
-		libc-dev
+		libc-dev \
+		wget
 
 RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz && \
 	tar xvf qperf-0.4.9.tar.gz &&\
