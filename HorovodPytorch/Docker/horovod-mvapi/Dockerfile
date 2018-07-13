@@ -36,8 +36,6 @@ RUN for DIR in bin include lib libexec share; do chmod 777 -R /usr/local/$DIR; d
 
 ENV PATH $PATH:/usr/local/bin
 ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
-RUN export PATH=$PATH:/usr/local/bin
-RUN export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 #RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz && \
 #	tar xvf qperf-0.4.9.tar.gz &&\
 #	cd qperf-0.4.9 &&\
@@ -81,9 +79,9 @@ RUN pip install http://download.pytorch.org/whl/cu90/torch-0.4.0-cp35-cp35m-linu
 #    rm -rf /tmp/openmpi
 
 # Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
-    HOROVOD_GPU_ALLREDUCE=MPI HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.8 && \
-    ldconfig
+#RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
+#    HOROVOD_GPU_ALLREDUCE=MPI HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.8 && \
+#    ldconfig
 #
 ## Create a wrapper for OpenMPI to allow running as root by default
 #RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
