@@ -88,14 +88,17 @@ build:
 build-intel:
 	docker build -t $(name_prefix)/horovod-intel-pytorch Docker/horovod-intel
 
+build-mvapi:
+	docker build -t $(name_prefix)/horovod-mvapi:$(tag) Docker/horovod-mvapi
+
 run-mpi:
 	$(call execute_mpi, $(name_prefix)/horovod-pytorch)
 
 run-mpi-intel:
 	$(call execute_mpi_intel, $(name_prefix)/horovod-intel-pytorch)
 
-build-mvapi:
-	docker build -t $(name_prefix)/horovod-mvapi:$(tag) Docker/horovod-mvapi
+run-mvapi:
+	nvidia-docker run --shm-size 8G --privileged -it $(name_prefix)/horovod-mvapi:$(tag) bash
 
 run:
 	$(call execute, $(name_prefix)/horovod-pytorch)

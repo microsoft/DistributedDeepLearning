@@ -29,6 +29,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		libc-dev \
 		wget
 
+COPY MVAPICH2 .
+
+RUN for DIR in bin include lib libexec share\
+	do \
+		mv -f  MVAPICH2/$DIR/*   /usr/local/$DIR/ \
+	done
+
+ENV LD_LIBRARY_PATH /usr/local/lib:$LD_LIBRARY_PATH
+
 #RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz && \
 #	tar xvf qperf-0.4.9.tar.gz &&\
 #	cd qperf-0.4.9 &&\
@@ -37,12 +46,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 #
 #RUN apt-get update && apt-get install -y --no-install-recommends \
-#        build-essential \
 #        cmake \
 #        git \
 #        curl \
 #        vim \
-#        wget \
 #        ca-certificates \
 #        libcudnn7=${CUDNN_VERSION} \
 #        libjpeg-dev \
@@ -75,15 +82,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #
 ## Install Horovod, temporarily using CUDA stubs
 #RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
-#    HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.2 && \
+#    HOROVOD_GPU_ALLREDUCE=MPI HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.2 && \
 #    ldconfig
-#
+
 ## Create a wrapper for OpenMPI to allow running as root by default
 #RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
 #    echo '#!/bin/bash' > /usr/local/bin/mpirun && \
 #    echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun && \
 #    chmod a+x /usr/local/bin/mpirun
-#
+
 ## Configure OpenMPI to run good defaults:
 ##   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
 #RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
@@ -93,7 +100,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ## Set default NCCL parameters
 #RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf && \
 #    echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
-#
+
 ## Install OpenSSH for MPI to communicate between containers
 #RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
 #    mkdir -p /var/run/sshd
