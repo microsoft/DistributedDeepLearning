@@ -65,5 +65,5 @@ RUN pip install http://download.pytorch.org/whl/cu90/torch-0.4.0-cp35-cp35m-linu
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
     /bin/bash -c "source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh" && \
-    HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod && \
+    HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.8 && \
     ldconfig
