@@ -1,33 +1,67 @@
-intel-image:=$(name_prefix)/horovod-intel-keras:$(tag)
-open-image:=$(name_prefix)/horovod-keras:$(tag)
-script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetKerasHorovod.py
+
+include ../experiments_config.mk
+
+FAKE:='True'
+FAKE_DATA_LENGTH:=1281167
 
 
-intel-image:=$(name_prefix)/horovod-intel-pytorch
-open-image:=$(name_prefix)/horovod-pytorch
-script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetPytorchHorovod.py
+include ../../include/control.mk
 
+define submit_keras_intel
+	$(call generate_job_intel,masalvar/horovod-intel-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1),$(2))
+	$(call submit_job, $(3))
+endef
 
-intel-image:=$(name_prefix)/horovod-intel:$(tag)
-open-image:=$(name_prefix)/horovod:$(tag)
-script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/ImagenetEstimatorHorovod.py
+define submit_keras
+	$(call generate_job_intel,masalvar/horovod-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1),$(2))
+	$(call submit_job, $(3))
+endef
 
+define submit_tf_intel
+	$(call generate_job_intel,masalvar/horovod-intel:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1),$(2))
+	$(call submit_job, $(3))
+endef
 
-include ../../include/*.mk
+define submit_tf
+	$(call generate_job_intel,masalvar/horovod:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1),$(2))
+	$(call submit_job, $(3))
+endef
+
+define submit_pytorch
+	$(call generate_job_intel,masalvar/horovod-pytorch:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1),$(2))
+	$(call submit_job, $(3))
+endef
+
 
 upload-scripts: set-storage
-	$(call upload_script, src/execution/ImagenetEstimatorHorovod.py)
-	$(call upload_script, src/execution/timer.py)
+	$(call upload_script, ../../HorovodKeras/src/data_generator.py)
+	$(call upload_script, ../../HorovodKeras/src/imagenet_keras_horovod.py)
+	$(call upload_script, ../../HorovodTF/src/imagenet_estimator_tf_horovod.py)
+	$(call upload_script, ../../HorovodKeras/src/imagenet_pytorch_horovod.py)
+	$(call upload_script, ../../common/src/timer.py)
 
-include ../include/*.mk
 
-upload-scripts: set-storage
-	$(call upload_script, src/execution/ImagenetPytorchHorovod.py)
-	$(call upload_script, src/execution/timer.py)
+create-cluster: upload-nodeprep-scripts
+	az batchai cluster create \
+	-w $(WORKSPACE) \
+	--name ${CLUSTER_NAME} \
+	--image UbuntuLTS \
+	--vm-size ${VM_SIZE} \
+	--min ${NUM_NODES} --max ${NUM_NODES} \
+	--afs-name ${FILE_SHARE_NAME} \
+	--afs-mount-path extfs \
+	--user-name mat \
+	--password dnstvxrz \
+	--storage-account-name $(STORAGE_ACCOUNT_NAME) \
+	--storage-account-key $(azure_storage_key) \
+	--config-file ../../cluster_config/cluster.json
 
-include ../include/*.mk
 
-upload-scripts: set-storage
-	$(call upload_script, src/execution/ImagenetKerasHorovod.py)
-	$(call upload_script, src/execution/data_generator.py)
-	$(call upload_script, src/execution/timer.py)
+submit-keras-intel:
+	$(call submit_keras_intel,$(NUM_NODES),$(PROCESSES_PER_NODE),keras-intel-32)
+
+submit-tf-intel:
+	$(call submit_tf_intel,$(NUM_NODES),$(PROCESSES_PER_NODE),tf-intel-32)
+
+submit-pytorch:
+	$(call submit_tf_intel,$(NUM_NODES),$(PROCESSES_PER_NODE),pytorch-32)
