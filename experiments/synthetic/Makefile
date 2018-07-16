@@ -64,4 +64,4 @@ submit-tf-intel:
 	$(call submit_tf_intel,$(NUM_NODES),$(PROCESSES_PER_NODE),tf-intel-32)
 
 submit-pytorch:
-	$(call submit_tf_intel,$(NUM_NODES),$(PROCESSES_PER_NODE),pytorch-32)
+	$(call submit_pytorch,$(NUM_NODES),$(PROCESSES_PER_NODE),pytorch-32)
