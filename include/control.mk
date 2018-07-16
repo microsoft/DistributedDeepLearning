@@ -22,7 +22,7 @@ export PROJECT_HELP_MSG
 
 
 define generate_job_intel
- python ../generate_job_spec.py $(1) intelmpi \
+ python ../../generate_job_spec.py $(1) intelmpi \
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
@@ -31,7 +31,7 @@ endef
 
 
 define generate_job_openmpi
- python ../generate_job_spec.py $(1) openmpi \
+ python ../../generate_job_spec.py $(1) openmpi \
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
