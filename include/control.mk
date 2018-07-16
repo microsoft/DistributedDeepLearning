@@ -94,7 +94,7 @@ create-directory: set-storage
 	az storage directory create --share-name $(file_share_name)  --name scripts --account-name $(azure_storage_account) --account-key $(azure_storage_key)
 
 create-nfs:
-	az batchai file-server create -n $(NFS_NAME) -w ${WORKSPACE} --disk-count 4 --disk-size 250 -s Standard_DS4_v2 -u mat -p d13NHAL!
+	az batchai file-server create -n $(NFS_NAME) -w ${WORKSPACE} --disk-count 4 --disk-size 250 -s Standard_DS4_v2 -u mat -p d13NHAL! -g ${GROUP_NAME}
 
 list-nfs:
 	az batchai file-server list -o table
