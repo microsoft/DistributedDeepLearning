@@ -2,7 +2,8 @@ include ../experiments_config.mk
 
 FAKE:='True'
 FAKE_DATA_LENGTH:=1281167
-
+NFS_NAME="batch${ID}nfs"
+NFS_IP:=""
 include ../../include/control.mk
 
 define submit_keras_intel
@@ -30,6 +31,11 @@ define submit_pytorch
 	$(call submit_job, $(3))
 endef
 
+define upload-data-nfs
+	scp nodeprep.sh mat@$(1):~/
+	ssh mat@$(1) sudo chmod 777 ~/nodeprep.sh
+	ssh mat@$(1) ./nodeprep.sh
+endef
 
 upload-scripts: set-storage
 	$(call upload_script, ../../HorovodKeras/src/data_generator.py)
@@ -52,8 +58,12 @@ create-cluster: upload-nodeprep-scripts
 	--password dnstvxrz \
 	--storage-account-name $(STORAGE_ACCOUNT_NAME) \
 	--storage-account-key $(azure_storage_key) \
+	--nfs ${NFS_NAME} \
+	--nfs-mount-path nfs \
 	--config-file ../../cluster_config/cluster.json
 
+upload-data-nfs:
+	$(call upload-data-nfs, $(NFS_IP))
 
 submit-keras-intel:
 	$(call submit_keras_intel,$(NUM_NODES),$(PROCESSES_PER_NODE),keras-intel-32)
