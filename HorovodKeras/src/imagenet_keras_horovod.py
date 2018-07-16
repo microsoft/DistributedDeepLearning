@@ -79,7 +79,7 @@ def _validation_data_iterator_from():
     # Validation data iterator.
     test_gen = image.ImageDataGenerator(
         zoom_range=(0.875, 0.875), preprocessing_function=keras.applications.resnet50.preprocess_input)
-    test_iter = test_gen.flow_from_directory(os.getenv('AZ_BATCHAI_INPUT_TEST'), batch_size=_BATCHSIZE,
+    test_iter = test_gen.flow_from_directory(os.path.join(os.getenv('AZ_BATCHAI_INPUT_TEST'), 'validation'), batch_size=_BATCHSIZE,
                                              target_size=(224, 224))
     return test_iter
 
@@ -89,7 +89,7 @@ def _training_data_iterator_from():
     train_gen = image.ImageDataGenerator(
         width_shift_range=0.33, height_shift_range=0.33, zoom_range=0.5, horizontal_flip=True,
         preprocessing_function=keras.applications.resnet50.preprocess_input)
-    train_iter = train_gen.flow_from_directory(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), batch_size=_BATCHSIZE,
+    train_iter = train_gen.flow_from_directory(os.path.join(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), 'train'), batch_size=_BATCHSIZE,
                                                target_size=(224, 224))
     return train_iter
 
