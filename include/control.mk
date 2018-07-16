@@ -118,8 +118,8 @@ list-nfs:
 #--nfs-mount-path nfs
 
 upload-nodeprep-scripts: set-storage
-	$(call upload_script, ../cluster_config/docker.service)
-	$(call upload_script, ../cluster_config/nodeprep.sh)
+	$(call upload_script, ../../cluster_config/docker.service)
+	$(call upload_script, ../../cluster_config/nodeprep.sh)
 
 create-workspace:
 	az batchai workspace create -n $(WORKSPACE) -g $(GROUP_NAME)
