@@ -97,7 +97,7 @@ create-nfs:
 	az batchai file-server create -n $(NFS_NAME) -w ${WORKSPACE} --disk-count 4 --disk-size 250 -s Standard_DS4_v2 -u mat -p d13NHAL! -g ${GROUP_NAME} --storage-sku Premium_LRS
 
 list-nfs:
-	az batchai file-server list -o table
+	az batchai file-server list -o table -w ${WORKSPACE} -g ${GROUP_NAME}
 
 #
 
