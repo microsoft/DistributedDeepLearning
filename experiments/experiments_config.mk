@@ -1,5 +1,5 @@
 # Variables for Batch AI - change as necessary
-ID:=ddl
+ID:=disdl
 LOCATION:=eastus
 GROUP_NAME:=batch${ID}rg
 STORAGE_ACCOUNT_NAME:=batch${ID}st
