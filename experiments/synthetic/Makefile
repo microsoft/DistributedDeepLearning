@@ -28,7 +28,7 @@ define submit_tf
 endef
 
 define submit_pytorch
-	$(call generate_job_openmpi,masalvar/horovod-pytorch:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1),$(2))
+	$(call generate_job_openmpi,masalvar/horovod-pytorch,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1),$(2))
 	$(call submit_job, $(3))
 endef
 
