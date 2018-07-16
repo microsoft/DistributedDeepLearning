@@ -26,7 +26,8 @@ define generate_job_intel
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
- 	--ppn $(4)
+ 	--ppn $(4) \
+ 	$(5)
 endef
 
 
@@ -35,7 +36,8 @@ define generate_job_openmpi
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
- 	--ppn $(4)
+ 	--ppn $(4) \
+ 	$(5)
 endef
 
 
