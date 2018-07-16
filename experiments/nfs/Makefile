@@ -63,7 +63,7 @@ create-cluster: upload-nodeprep-scripts
 	--config-file ../../cluster_config/cluster.json
 
 upload-data-nfs:
-	$(call upload-data-nfs, $(NFS_IP))
+	$(call upload-data-nfs,$(NFS_IP))
 
 submit-keras-intel:
 	$(call submit_keras_intel,$(NUM_NODES),$(PROCESSES_PER_NODE),keras-intel-32)
