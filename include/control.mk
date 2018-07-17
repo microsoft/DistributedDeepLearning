@@ -101,23 +101,7 @@ create-nfs:
 list-nfs:
 	az batchai file-server list -o table -w ${WORKSPACE} -g ${GROUP_NAME}
 
-#
 
-
-#
-#!az batchai cluster create \
-#--name nc24r \
-#--image UbuntuLTS \
-#--vm-size Standard_NC24r \
-#--min 4 --max 4 \
-#--afs-name $FILESHARE_NAME \
-#--afs-mount-path extfs \
-#--user-name mat \
-#--password dnstvxrz \
-#--storage-account-name $STORAGE_ACCOUNT_NAME \
-#--storage-account-key $storage_account_key \
-#--nfs $NFS_NAME \
-#--nfs-mount-path nfs
 
 upload-nodeprep-scripts: set-storage
 	$(call upload_script, ../../cluster_config/docker.service)
@@ -137,18 +121,6 @@ list-clusters:
 
 list-nodes:
 	az batchai cluster list-nodes -n ${CLUSTER_NAME} -w $(WORKSPACE) -o table
-
-#run-bait-intel:
-#	$(call generate_job_intel,$(intel-image),$(script),$(NUM_NODES),$(PROCESSES_PER_NODE))
-#	$(call submit_job, ${JOB_NAME})
-#
-#run-bait-openmpi:
-#	$(call generate_job_openmpi,$(open-image),$(script),$(NUM_NODES),$(PROCESSES_PER_NODE))
-#	$(call submit_job, ${JOB_NAME})
-#
-#run-bait-local:
-#	$(call generate_job_local, $(MODEL), $(PROCESSES_PER_NODE))
-#	$(call submit_job, ${JOB_NAME})
 
 list-jobs:
 	az batchai job list -w $(WORKSPACE) -e $(EXPERIMENT) -o table
