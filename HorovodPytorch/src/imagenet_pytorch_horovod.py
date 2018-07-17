@@ -64,20 +64,20 @@ def _append_path_to(data_path, data_series):
 
 
 def _load_training(data_dir):
+    logger.info('Reading training data from {}'.format(data_dir))
     train_df = pd.read_csv(path.join(data_dir, 'train.csv'))
     return train_df.assign(filenames=_append_path_to(path.join(data_dir, 'train'),
                                                      train_df.filenames))
 
 def _load_validation(data_dir):
+    logger.info('Reading validation data from {}'.format(data_dir))
     train_df = pd.read_csv(path.join(data_dir, 'validation.csv'))
     return train_df.assign(filenames=_append_path_to(path.join(data_dir, 'validation'),
                             train_df.filenames))
 
 
 def _create_data_fn(train_path, test_path):
-    logger.info('Reading training data info')
     train_df = _load_training(train_path)
-    logger.info('Reading validation data info')
     validation_df = _load_validation(test_path)
     # File-path
     train_X = train_df['filenames'].values
