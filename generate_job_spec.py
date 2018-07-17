@@ -33,6 +33,8 @@ cmd_for_openmpi = \
     -mca btl ^openib 
     -x NCCL_IB_DISABLE=1 
     -x DISTRIBUTED=True 
+    -x AZ_BATCHAI_INPUT_TRAIN
+    -x AZ_BATCHAI_INPUT_TEST
     {fake} 
     {fake_length} 
     --allow-run-as-root 
