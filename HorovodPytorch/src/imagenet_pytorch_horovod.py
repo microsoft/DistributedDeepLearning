@@ -25,7 +25,6 @@ import torchvision.models as models
 from os import path
 import pandas as pd
 from torch.utils.data import Dataset
-from torch.autograd import Variable
 import torch.nn.functional as F
 
 def _str_to_bool(in_str):
