@@ -77,11 +77,12 @@ def _create_model():
 
 def _validation_data_iterator_from():
     # Validation data iterator.
-    test_gen = image.ImageDataGenerator(
-        zoom_range=(0.875, 0.875), preprocessing_function=keras.applications.resnet50.preprocess_input)
-    test_iter = test_gen.flow_from_directory(os.path.join(os.getenv('AZ_BATCHAI_INPUT_TEST'), 'validation'), batch_size=_BATCHSIZE,
-                                             target_size=(224, 224))
-    return test_iter
+    raise NotImplementedError('The flow from directory command expects data to be in directories and this is not implemented yet')
+    # test_gen = image.ImageDataGenerator(
+    #     zoom_range=(0.875, 0.875), preprocessing_function=keras.applications.resnet50.preprocess_input)
+    # test_iter = test_gen.flow_from_directory(os.path.join(os.getenv('AZ_BATCHAI_INPUT_TEST'), 'validation'), batch_size=_BATCHSIZE,
+    #                                          target_size=(224, 224))
+    # return test_iter
 
 
 def _training_data_iterator_from():
@@ -212,7 +213,7 @@ def main():
         train_iter = _fake_data_iterator_from()
     else:
         train_iter = _training_data_iterator_from()
-        test_iter = _validation_data_iterator_from()
+        # test_iter = _validation_data_iterator_from()
 
     model = _create_model()
 
@@ -260,14 +261,14 @@ def main():
                         initial_epoch=resume_from_epoch)
 
     # _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
-    if _FAKE is False:
+    # if _FAKE is False:
         # Evaluate the model on the full data set.
-        with Timer(output=logger.info, prefix="Testing"):
-            logger.info('Testing...')
-            score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=10))
-            if verbose:
-                print('Test loss:', score[0])
-            print('Test accuracy:', score[1])
+        # with Timer(output=logger.info, prefix="Testing"):
+        #     logger.info('Testing...')
+        #     score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=10))
+        #     if verbose:
+        #         print('Test loss:', score[0])
+        #     print('Test accuracy:', score[1])
 
 
 if __name__ == '__main__':
