@@ -75,16 +75,16 @@ def _hosts_for(mpitype, node_count):
 
 def _fake_for(mpitype, data):
     if data is None:
-        return ''
-    else:
         return fake_param.get(mpitype, '')
+    else:
+        return ''
 
 
 def _fake_length_for(mpitype, fake_length, data):
     if data is None:
-        return ''
-    else:
         return fake_length_param.get(mpitype, '').format(fake_length)
+    else:
+        return ''
 
 
 def _prepare_command(mpitype, total_processes, processes_per_node, script, node_count, data=None, synthetic_length=1281167):
