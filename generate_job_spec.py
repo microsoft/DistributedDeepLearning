@@ -39,7 +39,7 @@ cmd_for_openmpi = \
     python -u {script}""".replace('\n', '')
 
 # Running on single node without mpi
-cmd_local = """python {script}""".replace('\n', '')
+cmd_local = """python -u {script}""".replace('\n', '')
 
 cmd_choice_dict = {
     'openmpi': cmd_for_openmpi,
@@ -74,11 +74,17 @@ def _hosts_for(mpitype, node_count):
 
 
 def _fake_for(mpitype, data):
-    return fake_param.get(mpitype, '')
+    if data is None:
+        return ''
+    else:
+        return fake_param.get(mpitype, '')
 
 
-def _fake_length_for(mpitype, fake_length):
-    return fake_length_param.get(mpitype, '').format(fake_length)
+def _fake_length_for(mpitype, fake_length, data):
+    if data is None:
+        return ''
+    else:
+        return fake_length_param.get(mpitype, '').format(fake_length)
 
 
 def _prepare_command(mpitype, total_processes, processes_per_node, script, node_count, data=None, synthetic_length=1281167):
@@ -88,7 +94,7 @@ def _prepare_command(mpitype, total_processes, processes_per_node, script, node_
                           script=script,
                           hosts=_hosts_for(mpitype, node_count),
                           fake=_fake_for(mpitype, data),
-                          fake_length=_fake_length_for(mpitype, synthetic_length))
+                          fake_length=_fake_length_for(mpitype, synthetic_length, data))
 
 
 def append_data_paths(job_template_dict, data_path):
