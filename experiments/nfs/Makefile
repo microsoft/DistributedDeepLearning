@@ -2,8 +2,9 @@ include ../experiments_config.mk
 
 FAKE:='True'
 FAKE_DATA_LENGTH:=1281167
-NFS_NAME="batch${ID}nfs"
+NFS_NAME=batch${ID}nfs
 NFS_IP:=""
+
 include ../../include/control.mk
 
 define submit_keras_intel
