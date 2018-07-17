@@ -1,32 +1,32 @@
 include ../experiments_config.mk
 
-FAKE:='True'
 FAKE_DATA_LENGTH:=1281167
+EXPERIMENT:=experiment_synthetic_${GPU_TYPE}
 
 include ../../include/control.mk
 
 define submit_keras_intel
-	$(call generate_job_intel,masalvar/horovod-intel-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1),$(2), )
+	$(call generate_job_intel,masalvar/horovod-intel-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH} )
 	$(call submit_job, $(3))
 endef
 
 define submit_keras
-	$(call generate_job_openmpi,masalvar/horovod-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1),$(2), )
+	$(call generate_job_openmpi,masalvar/horovod-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
 	$(call submit_job, $(3))
 endef
 
 define submit_tf_intel
-	$(call generate_job_intel,masalvar/horovod-intel:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1),$(2), )
+	$(call generate_job_intel,masalvar/horovod-intel:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
 	$(call submit_job, $(3))
 endef
 
 define submit_tf
-	$(call generate_job_openmpi,masalvar/horovod:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1),$(2), )
+	$(call generate_job_openmpi,masalvar/horovod:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
 	$(call submit_job, $(3))
 endef
 
 define submit_pytorch
-	$(call generate_job_openmpi,masalvar/horovod-pytorch,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1),$(2), )
+	$(call generate_job_openmpi,masalvar/horovod-pytorch,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
 	$(call submit_job, $(3))
 endef
 

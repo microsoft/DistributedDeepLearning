@@ -1,8 +1,7 @@
 include ../experiments_config.mk
 
-FAKE:='True'
-FAKE_DATA_LENGTH:=1281167
 NFS_NAME=batch${ID}nfs
+EXPERIMENT:=experiment_imagenet_${GPU_TYPE}
 NFS_IP:=""
 
 include ../../include/control.mk
