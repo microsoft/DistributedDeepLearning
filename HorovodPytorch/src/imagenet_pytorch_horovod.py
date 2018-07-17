@@ -65,6 +65,7 @@ def _append_path_to(data_path, data_series):
 
 def _load_training(data_dir):
     logger.info('Reading training data from {}'.format(data_dir))
+    logger.info('{}'.format(type(data_dir)))
     train_df = pd.read_csv(path.join(data_dir, 'train.csv'))
     return train_df.assign(filenames=_append_path_to(path.join(data_dir, 'train'),
                                                      train_df.filenames))
