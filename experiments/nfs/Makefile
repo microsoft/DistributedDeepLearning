@@ -37,14 +37,6 @@ define upload-data-nfs
 	ssh mat@$(1) ./nodeprep.sh
 endef
 
-upload-scripts: set-storage
-	$(call upload_script, ../../HorovodKeras/src/data_generator.py)
-	$(call upload_script, ../../HorovodKeras/src/imagenet_keras_horovod.py)
-	$(call upload_script, ../../HorovodTF/src/imagenet_estimator_tf_horovod.py)
-	$(call upload_script, ../../HorovodPytorch/src/imagenet_pytorch_horovod.py)
-	$(call upload_script, ../../common/timer.py)
-
-
 create-cluster: upload-nodeprep-scripts
 	az batchai cluster create \
 	-w $(WORKSPACE) \
