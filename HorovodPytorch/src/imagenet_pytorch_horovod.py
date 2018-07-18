@@ -8,9 +8,10 @@ AZ_BATCHAI_OUTPUT_MODEL
 AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
+import sys
+from functools import lru_cache
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 from timer import Timer
 import numpy as np
@@ -58,12 +59,26 @@ _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 if _DISTRIBUTED:
     import horovod.torch as hvd
 
+@lru_cache()
+def _get_logger():
+    logger = logging.getLogger(__name__)
+    ch = logging.StreamHandler(stream=sys.stdout)
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(nodeid)d: %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    if _DISTRIBUTED:
+        adapter = logging.LoggerAdapter(logger, {'nodeid': hvd.rank()})
+    else:
+        adapter = logging.LoggerAdapter(logger, {'nodeid': 1})
+    return adapter
+
 
 def _append_path_to(data_path, data_series):
     return data_series.apply(lambda x: path.join(data_path, x))
 
 
 def _load_training(data_dir):
+    logger = _get_logger()
     logger.info('Reading training data from {}'.format(data_dir))
     logger.info('{}'.format(type(data_dir)))
     train_df = pd.read_csv(path.join(data_dir, 'train.csv'))
@@ -71,6 +86,7 @@ def _load_training(data_dir):
                                                      train_df.filenames))
 
 def _load_validation(data_dir):
+    logger = _get_logger()
     logger.info('Reading validation data from {}'.format(data_dir))
     train_df = pd.read_csv(path.join(data_dir, 'validation.csv'))
     return train_df.assign(filenames=_append_path_to(path.join(data_dir, 'validation'),
@@ -94,6 +110,7 @@ def _create_data_fn(train_path, test_path):
 
 class ImageNet(Dataset):
     def __init__(self, img_locs, img_labels, transform=None):
+        logger = _get_logger()
         self.img_locs, self.labels = img_locs, img_labels
         self.transform = transform
         logger.info("Loaded {} labels and {} images".format(len(self.labels), len(self.img_locs)))
@@ -112,9 +129,6 @@ class ImageNet(Dataset):
     def __len__(self):
         return len(self.img_locs)
 
-
-def _get_logger():
-    return logging.getLogger(__name__)
 
 def _create_data(batch_size, num_batches, dim, channels, seed=42):
     np.random.seed(seed)
@@ -149,6 +163,7 @@ class FakeData(Dataset):
         self._length=length
 
         self._data_transform = data_transform
+        logger = _get_logger()
         logger.info("Creating fake data {} labels and {} images".format(n_classes, len(self._data)))
 
     def __getitem__(self, idx):
@@ -179,6 +194,7 @@ def _is_master(is_distributed=_DISTRIBUTED):
 
 
 def train(train_loader, model, criterion, optimizer, epoch):
+    logger = _get_logger()
     logger.info("Training ...")
     msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
     t=Timer()
@@ -201,6 +217,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
 
 def _log_summary(data_length, duration):
+    logger = _get_logger()
     images_per_second = data_length / duration
     logger.info('Data length:      {}'.format(data_length))
     logger.info('Total duration:   {:.3f}'.format(duration))
@@ -215,12 +232,16 @@ def _log_summary(data_length, duration):
 def main():
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
-        logger.info("Runnin Distributed")
+
         hvd.init()
+        logger = _get_logger()
+        logger.info("Runnin Distributed")
         torch.manual_seed(_SEED)
         # Horovod: pin GPU to local rank.
         torch.cuda.set_device(hvd.local_rank())
         torch.cuda.manual_seed(_SEED)
+    else:
+        logger = _get_logger()
 
     logger.info("PyTorch version {}".format(torch.__version__))
 
