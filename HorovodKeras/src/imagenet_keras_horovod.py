@@ -79,6 +79,7 @@ class HorovodAdapter(logging.LoggerAdapter):
 @lru_cache()
 def _get_logger():
     logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
     ch = logging.StreamHandler(stream=sys.stdout)
     formatter = logging.Formatter('%(levelname)s:%(name)s:%(gpurank)d: %(epoch)s %(message)s')
     ch.setFormatter(formatter)
