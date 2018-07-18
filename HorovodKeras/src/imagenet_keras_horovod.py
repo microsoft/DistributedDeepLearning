@@ -229,15 +229,12 @@ def _log_summary(data_length, duration):
 
 def main():
     verbose=0
+    logger = _get_logger()
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
-
         hvd.init()
-        logger = _get_logger()
         logger.info("Runnin Distributed")
         verbose = 1 if hvd.rank() == 0 else 0
-    else:
-        logger = _get_logger()
 
     logger.info("Tensorflow version {}".format(tf.__version__))
     K.set_session(tf.Session(config=_get_runconfig()))
