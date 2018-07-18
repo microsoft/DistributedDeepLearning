@@ -55,17 +55,43 @@ _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 if _DISTRIBUTED:
     import horovod.torch as hvd
 
+
+def _get_rank():
+    if _DISTRIBUTED:
+        try:
+            return hvd.rank()
+        except:
+            return 0
+    else:
+        return 0
+
+
+class HorovodAdapter(logging.LoggerAdapter):
+    def __init__(self, logger):
+        self._str_epoch=''
+        self._gpu_rank=0
+        super(HorovodAdapter, self).__init__(logger, {})
+
+    def set_epoch(self, epoch):
+        self._str_epoch='[Epoch {}]'.format(epoch)
+
+    def process(self, msg, kwargs):
+        kwargs['extra'] = {
+            'gpurank': _get_rank(),
+            'epoch': self._str_epoch
+        }
+        return msg, kwargs
+
+
 @lru_cache()
 def _get_logger():
     logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
     ch = logging.StreamHandler(stream=sys.stdout)
-    formatter = logging.Formatter('%(levelname)s:%(name)s:%(nodeid)d: %(message)s')
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(gpurank)d: %(epoch)s %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    if _DISTRIBUTED:
-        adapter = logging.LoggerAdapter(logger, {'nodeid': hvd.rank()})
-    else:
-        adapter = logging.LoggerAdapter(logger, {'nodeid': 1})
+    adapter = HorovodAdapter(logger)
     return adapter
 
 
