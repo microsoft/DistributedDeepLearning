@@ -77,10 +77,10 @@ create-cluster: upload-nodeprep-scripts
 
 
 submit-keras-intel:
-	$(call submit_keras_intel,$(NUM_NODES),$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/extcn/imagenet ,keras-intel-32)
+	$(call submit_keras_intel,$(NUM_NODES),$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/extcn ,keras-intel-32)
 
 submit-tf-intel:
-	$(call submit_tf_intel,$(NUM_NODES),$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/extcn/imagenet ,tf-intel-32)
+	$(call submit_tf_intel,$(NUM_NODES),$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/extcn ,tf-intel-32)
 
 submit-pytorch:
-	$(call submit_pytorch,$(NUM_NODES),$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/extcn/imagenet ,pytorch-32)
+	$(call submit_pytorch,$(NUM_NODES),$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/extcn ,pytorch-32)
