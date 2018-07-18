@@ -50,10 +50,6 @@ _WEIGHT_DECAY = 0.00005
 
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
 _DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
-
-
-
-
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 
 if _DISTRIBUTED:

@@ -8,11 +8,12 @@ AZ_BATCHAI_OUTPUT_MODEL
 AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
+import sys
+from functools import lru_cache
 
 from data_generator import FakeDataGenerator
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 from timer import Timer
 
@@ -54,8 +55,21 @@ _DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data 
 if _DISTRIBUTED:
     import horovod.keras as hvd
 
+@lru_cache()
+def _get_logger():
+    logger = logging.getLogger(__name__)
+    ch = logging.StreamHandler(stream=sys.stdout)
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(nodeid)d: %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    if _DISTRIBUTED:
+        adapter = logging.LoggerAdapter(logger, {'nodeid': hvd.rank()})
+    else:
+        adapter = logging.LoggerAdapter(logger, {'nodeid': 1})
+    return adapter
 
 def _create_model():
+    logger = _get_logger()
     logger.info('Creating model')
     # Set up standard ResNet-50 model.
     model = keras.applications.resnet50.ResNet50(weights=None)
@@ -130,7 +144,7 @@ def _get_model_dir(is_distributed=_DISTRIBUTED):
 
 
 def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
-
+    logger = _get_logger()
     if is_distributed:
         logger.info('Rank: {} Cluster Size {}'.format(hvd.local_rank(), hvd.size()))
         return [
@@ -182,6 +196,7 @@ def _is_master(is_distributed=_DISTRIBUTED):
         return True
 
 def _log_summary(data_length, duration):
+    logger = _get_logger()
     images_per_second = data_length / duration
     logger.info('Data length:      {}'.format(data_length))
     logger.info('Total duration:   {:.3f}'.format(duration))
@@ -196,9 +211,13 @@ def main():
     verbose=0
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
-        logger.info("Runnin Distributed")
+
         hvd.init()
+        logger = _get_logger()
+        logger.info("Runnin Distributed")
         verbose = 1 if hvd.rank() == 0 else 0
+    else:
+        logger = _get_logger()
 
     logger.info("Tensorflow version {}".format(tf.__version__))
     K.set_session(tf.Session(config=_get_runconfig()))
