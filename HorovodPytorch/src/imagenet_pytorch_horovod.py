@@ -221,6 +221,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
     t=Timer()
     t.start()
+    logger.set_epoch(epoch)
     for i, (data, target) in enumerate(train_loader):
         data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
 

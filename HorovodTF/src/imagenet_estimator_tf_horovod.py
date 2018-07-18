@@ -417,7 +417,7 @@ def main():
     if _is_master() and _FAKE is False:
         with Timer(output=logger.info, prefix="Testing"):
             logger.info('Testing...')
-            model.evaluate(input_fn=validation_input_fn)
+            # model.evaluate(input_fn=validation_input_fn)
 
 
 if __name__ == '__main__':
