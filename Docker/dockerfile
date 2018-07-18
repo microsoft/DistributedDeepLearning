@@ -38,3 +38,5 @@ RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ xenia
     apt-get update && \
     apt-get install -y --no-install-recommends \
     azure-cli
+
+#TODO: Add AzCOPY
