@@ -72,8 +72,10 @@ class HorovodAdapter(logging.LoggerAdapter):
         self._str_epoch='[Epoch {}]'.format(epoch)
 
     def process(self, msg, kwargs):
-        kwargs['gpurank']=_get_rank()
-        kwargs['epoch'] = self._str_epoch
+        kwargs['extra'] = {
+            'gpurank': _get_rank(),
+            'epoch': self._str_epoch
+        }
         return msg, kwargs
 
 @lru_cache()
