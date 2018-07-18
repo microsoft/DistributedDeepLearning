@@ -31,17 +31,23 @@ define submit_pytorch
 endef
 
 
-upload-data: set-storage
-	azcopy --source https://datasharesa.blob.core.windows.net/imagenet/validation \
-			--source-key 'owUPSqTbwAigV54BHTr8oYABEha8xi/VsA4HD06GboDgOb3pf6OFgtw/tlKYv/AlkgSIBkxqoA28hnkIeo4NFg==' \
-			--destination  https://${azure_storage_account}.blob.core.windows.net/${CONTAINER_NAME}/validation \
-			--dest-key ${azure_storage_key} --quiet --recursive
+upload-data: upload-training upload-validation upload-csv
+	@echo 'All data uploaded'
 
+upload-training: set-storage
 	azcopy --source https://datasharesa.blob.core.windows.net/imagenet/train \
 			--source-key 'owUPSqTbwAigV54BHTr8oYABEha8xi/VsA4HD06GboDgOb3pf6OFgtw/tlKYv/AlkgSIBkxqoA28hnkIeo4NFg==' \
 			--destination  https://${azure_storage_account}.blob.core.windows.net/${CONTAINER_NAME}/train \
 			--dest-key ${azure_storage_key} --quiet --recursive --exclude-older
 
+upload-validation: set-storage
+	azcopy --source https://datasharesa.blob.core.windows.net/imagenet/validation \
+		--source-key 'owUPSqTbwAigV54BHTr8oYABEha8xi/VsA4HD06GboDgOb3pf6OFgtw/tlKYv/AlkgSIBkxqoA28hnkIeo4NFg==' \
+		--destination  https://${azure_storage_account}.blob.core.windows.net/${CONTAINER_NAME}/validation \
+		--dest-key ${azure_storage_key} --quiet --recursive
+
+
+upload-csv: set-storage
 	azcopy --source https://datasharesa.blob.core.windows.net/imagenet/train.csv \
 			--source-key 'owUPSqTbwAigV54BHTr8oYABEha8xi/VsA4HD06GboDgOb3pf6OFgtw/tlKYv/AlkgSIBkxqoA28hnkIeo4NFg==' \
 			--destination  https://${azure_storage_account}.blob.core.windows.net/${CONTAINER_NAME}/train.csv \
@@ -51,7 +57,6 @@ upload-data: set-storage
 			--source-key 'owUPSqTbwAigV54BHTr8oYABEha8xi/VsA4HD06GboDgOb3pf6OFgtw/tlKYv/AlkgSIBkxqoA28hnkIeo4NFg==' \
 			--destination  https://${azure_storage_account}.blob.core.windows.net/${CONTAINER_NAME}/validation.csv \
 			--dest-key ${azure_storage_key} --quiet
-
 
 create-cluster: upload-nodeprep-scripts
 	az batchai cluster create \
