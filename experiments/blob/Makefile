@@ -71,8 +71,8 @@ create-cluster: upload-nodeprep-scripts
 	--password dnstvxrz \
 	--storage-account-name $(STORAGE_ACCOUNT_NAME) \
 	--storage-account-key $(azure_storage_key) \
-	---container-name $(CONTAINER_NAME) \
-	--container-mount-path extcn \
+	---bfs-name $(CONTAINER_NAME) \
+	--bfs-mount-path extcn \
 	--config-file ../../cluster_config/cluster.json
 
 
