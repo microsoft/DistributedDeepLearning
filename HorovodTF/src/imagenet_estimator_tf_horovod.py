@@ -53,7 +53,7 @@ if _DISTRIBUTED:
 
 resnet_v1_50 = nets.resnet_v1.resnet_v1_50
 
-@lru_cache
+@lru_cache()
 def _get_logger():
     logger = logging.getLogger(__name__)
     ch = logging.StreamHandler(stream=sys.stdout)
