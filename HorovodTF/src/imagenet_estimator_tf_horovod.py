@@ -349,11 +349,15 @@ def _log_summary(data_length, duration):
 
 
 def main():
-    logger = _get_logger()
+
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
         hvd.init()
+        logger = _get_logger()
         logger.info("Runnin Distributed")
+    else:
+        logger = _get_logger()
+
     logger.info("Tensorflow version {}".format(tf.__version__))
     if _FAKE:
         train_input_fn, validation_input_fn = _create_fake_data_fn()
