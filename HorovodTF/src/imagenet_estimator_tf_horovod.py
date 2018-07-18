@@ -64,8 +64,6 @@ def _get_logger():
     adapter.addHandler(ch)
     return adapter
 
-logger = _get_logger()
-
 
 def _load_image(filename, channels=_CHANNELS):
     return tf.to_float(tf.image.decode_png(tf.read_file(filename), channels=channels))
@@ -200,6 +198,7 @@ def _load_validation(data_dir):
 
 
 def _create_data_fn(train_path, test_path):
+    logger = _get_logger()
     logger.info('Reading training data info')
     train_df = _load_training(train_path)
 
@@ -252,6 +251,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
 
     Data is returned in NCHW since this tends to be faster on GPUs
     """
+    logger = _get_logger()
     logger.info('Creating fake data')
 
     def fake_data_generator(num_batches=20):
@@ -316,6 +316,7 @@ def _get_model_dir(is_distributed=_DISTRIBUTED):
 
 
 def _get_hooks(is_distributed=_DISTRIBUTED):
+    logger = _get_logger()
     if is_distributed:
         bcast_hook = hvd.BroadcastGlobalVariablesHook(0)
         logger.info('Rank: {} Cluster Size {}'.format(hvd.local_rank(), hvd.size()))
@@ -335,6 +336,7 @@ def _is_master(is_distributed=_DISTRIBUTED):
 
 
 def _log_summary(data_length, duration):
+    logger = _get_logger()
     images_per_second = data_length / duration
     logger.info('Data length:      {}'.format(data_length))
     logger.info('Total duration:   {:.3f}'.format(duration))
@@ -347,10 +349,11 @@ def _log_summary(data_length, duration):
 
 
 def main():
+    logger = _get_logger()
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
-        logger.info("Runnin Distributed")
         hvd.init()
+        logger.info("Runnin Distributed")
     logger.info("Tensorflow version {}".format(tf.__version__))
     if _FAKE:
         train_input_fn, validation_input_fn = _create_fake_data_fn()
