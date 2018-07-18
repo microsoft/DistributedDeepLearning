@@ -8,8 +8,9 @@ AZ_BATCHAI_OUTPUT_MODEL
 AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
+import sys
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 import os
 from os import path
@@ -49,9 +50,21 @@ _DATA_LENGTH = int(
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
 
-logger = logging.getLogger(__name__)
-
 resnet_v1_50 = nets.resnet_v1.resnet_v1_50
+
+def _get_logger():
+    logger = logging.getLogger(__name__)
+    ch = logging.StreamHandler(stream=sys.stdout)
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(nodeid)d: %(message)s')
+    ch.setFormatter(formatter)
+    if _DISTRIBUTED:
+        adapter = logging.LoggerAdapter(logger, {'nodeid': hvd.rank()})
+    else:
+        adapter = logging.LoggerAdapter(logger, {'nodeid': 1})
+    adapter.addHandler(ch)
+    return adapter
+
+logger = _get_logger()
 
 
 def _load_image(filename, channels=_CHANNELS):
