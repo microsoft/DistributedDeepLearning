@@ -13,8 +13,6 @@ from functools import lru_cache
 
 from data_generator import FakeDataGenerator
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
 from timer import Timer
 
 import keras
@@ -55,17 +53,37 @@ _DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data 
 if _DISTRIBUTED:
     import horovod.keras as hvd
 
+def _get_rank():
+    if _DISTRIBUTED:
+        try:
+            return hvd.rank()
+        except:
+            return 0
+    else:
+        return 0
+
+class HorovodAdapter(logging.LoggerAdapter):
+    def __init__(self, logger):
+        self._str_epoch=''
+        self._gpu_rank=0
+        super(HorovodAdapter, self).__init__(logger, {})
+
+    def set_epoch(self, epoch):
+        self._str_epoch='[Epoch {}]'.format(epoch)
+
+    def process(self, msg, kwargs):
+        kwargs['gpurank']=_get_rank()
+        kwargs['epoch'] = self._str_epoch
+        return msg, kwargs
+
 @lru_cache()
 def _get_logger():
     logger = logging.getLogger(__name__)
     ch = logging.StreamHandler(stream=sys.stdout)
-    formatter = logging.Formatter('%(levelname)s:%(name)s:%(nodeid)d: %(message)s')
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(gpurank)d: %(epoch)s %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    if _DISTRIBUTED:
-        adapter = logging.LoggerAdapter(logger, {'nodeid': hvd.rank()})
-    else:
-        adapter = logging.LoggerAdapter(logger, {'nodeid': 1})
+    adapter = HorovodAdapter(logger)
     return adapter
 
 def _create_model():
@@ -180,6 +198,8 @@ class LoggerCallback(keras.callbacks.Callback):
         self._data_length=data_length
 
     def on_epoch_begin(self, epoch, logs):
+        logger = _get_logger()
+        logger.set_epoch(epoch)
         self._timer.start()
 
     def on_epoch_end(self, epoch, logs):
