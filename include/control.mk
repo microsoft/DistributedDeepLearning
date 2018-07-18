@@ -102,7 +102,7 @@ list-nfs:
 	az batchai file-server list -o table -w ${WORKSPACE} -g ${GROUP_NAME}
 
 create-container: set-storage
-	az storage container create --account-name $(azure_storage_account) --account-key $(azure_storage_key) --name $CONTAINER_NAME
+	az storage container create --account-name $(azure_storage_account) --account-key $(azure_storage_key) --name ${CONTAINER_NAME}
 
 upload-scripts: set-storage
 	$(call upload_script, ../../HorovodKeras/src/data_generator.py)
