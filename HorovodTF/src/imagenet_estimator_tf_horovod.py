@@ -57,11 +57,11 @@ def _get_logger():
     ch = logging.StreamHandler(stream=sys.stdout)
     formatter = logging.Formatter('%(levelname)s:%(name)s:%(nodeid)d: %(message)s')
     ch.setFormatter(formatter)
+    logger.addHandler(ch)
     if _DISTRIBUTED:
         adapter = logging.LoggerAdapter(logger, {'nodeid': hvd.rank()})
     else:
         adapter = logging.LoggerAdapter(logger, {'nodeid': 1})
-    adapter.addHandler(ch)
     return adapter
 
 
