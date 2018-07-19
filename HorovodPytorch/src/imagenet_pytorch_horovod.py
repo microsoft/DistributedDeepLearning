@@ -11,8 +11,6 @@ import logging
 import sys
 from functools import lru_cache
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
 from timer import Timer
 import numpy as np
 import os
@@ -217,8 +215,7 @@ def _is_master(is_distributed=_DISTRIBUTED):
 
 def train(train_loader, model, criterion, optimizer, epoch):
     logger = _get_logger()
-    logger.info("Training ...")
-    msg = 'Train Epoch: {}   duration({})  loss:{} total-samples: {}'
+    msg = ' duration({})  loss:{} total-samples: {}'
     t=Timer()
     t.start()
     logger.set_epoch(epoch)
@@ -290,7 +287,7 @@ def main():
 
 
     train_sampler=_get_sampler(train_dataset)
-    kwargs = {'num_workers': 4, 'pin_memory': True}
+    kwargs = {'num_workers': 6, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 
@@ -318,6 +315,7 @@ def main():
 
     criterion=F.cross_entropy
     # Main training-loop
+    logger.info("Training ...")
     for epoch in range(_EPOCHS):
         with Timer(output=logger.info, prefix="Training") as t:
             model.train()
