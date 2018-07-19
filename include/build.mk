@@ -30,7 +30,7 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
 	--env AZ_BATCHAI_OUTPUT_MODEL='/mnt/model' \
 	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output' \
 	--env AZ_BATCHAI_INPUT_SCRIPTS='/mnt/script' \
-	--env PYTHONPATH=/mnt/common/
+	--env PYTHONPATH=/mnt/common/:$$PYTHONPATH
 
 
 define execute_mpi
@@ -62,10 +62,10 @@ define execute
  --env DISTRIBUTED='False' \
  --env FAKE=$(FAKE) \
  --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
- $(1) bash -c "ipython"
+ $(1) bash -c "python $(2)"
 endef
 
-#"python $(2)"
+
 help:
 	echo "$$PROJECT_HELP_MSG" | less
 
