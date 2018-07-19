@@ -168,14 +168,12 @@ def model_fn(features, labels, mode, params):
                                  num_classes=params['classes'])
         logits = tf.reshape(logits, shape=[-1, params['classes']])
 
-    # Softmax output of the neural network.
-    y_pred = tf.nn.softmax(logits=logits)
-
-    # Classification output of the neural network.
-    y_pred_cls = tf.argmax(y_pred, axis=1)
-
     if mode == tf.estimator.ModeKeys.PREDICT:
+        # Softmax output of the neural network.
+        y_pred = tf.nn.softmax(logits=logits)
 
+        # Classification output of the neural network.
+        y_pred_cls = tf.argmax(y_pred, axis=1)
 
         predictions = {
             'class_ids': y_pred_cls,
