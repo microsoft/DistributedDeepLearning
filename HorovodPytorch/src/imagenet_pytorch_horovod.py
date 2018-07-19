@@ -133,7 +133,7 @@ class ImageNet(Dataset):
         logger = _get_logger()
         self.img_locs, self.labels = img_locs, img_labels
         self.transform = transform
-        logger.info("Loaded {} labels and {} images".format(len(self.labels), len(self.img_locs)))
+        logger.info("Loaded {} labels and {} images".format(len(np.unique(self.labels)), len(self.img_locs)))
 
     def __getitem__(self, idx):
         im_file = self.img_locs[idx]
