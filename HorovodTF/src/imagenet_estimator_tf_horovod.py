@@ -162,7 +162,8 @@ def model_fn(features, labels, mode, params):
     mode:     Either TRAIN, EVAL, or PREDICT
     params:   User-defined hyper-parameters, e.g. learning-rate.
     """
-
+    logger=_get_logger()
+    logger.info('Creating model in {} mode'.format(mode))
     with slim.arg_scope(nets.resnet_v1.resnet_arg_scope()):
         logits, _ = resnet_v1_50(features,
                                  num_classes=params['classes'])
