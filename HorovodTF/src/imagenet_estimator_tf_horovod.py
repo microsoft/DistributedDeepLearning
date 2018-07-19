@@ -166,7 +166,8 @@ def model_fn(features, labels, mode, params):
     logger.info('Creating model in {} mode'.format(mode))
     with slim.arg_scope(nets.resnet_v1.resnet_arg_scope()):
         logits, _ = resnet_v1_50(features,
-                                 num_classes=params['classes'])
+                                 num_classes=params['classes'],
+                                 is_training=True if mode=='train' else False)
         logits = tf.reshape(logits, shape=[-1, params['classes']])
 
     if mode == tf.estimator.ModeKeys.PREDICT:
