@@ -11,8 +11,6 @@ import logging
 import sys
 from functools import lru_cache
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
 import os
 from os import path
 
@@ -53,6 +51,10 @@ if _DISTRIBUTED:
 
 resnet_v1_50 = nets.resnet_v1.resnet_v1_50
 
+tf_logger = logging.getLogger('tensorflow')
+tf_logger.setLevel(logging.INFO)
+stout = logging.StreamHandler(stream=sys.stdout)
+tf_logger.addHandler(stout)
 
 def _get_rank():
     if _DISTRIBUTED:
@@ -280,7 +282,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000, num_batc
     Data is returned in NCHW since this tends to be faster on GPUs
     """
     logger = _get_logger()
-    logger.info('Creating fake data function')
+    logger.info('Creating fake data')
 
     data_array = _create_data(_BATCHSIZE, num_batches, (_HEIGHT, _WIDTH), _CHANNELS)
     labels_array = _create_labels(_BATCHSIZE, num_batches, 1000)
