@@ -1,9 +1,9 @@
 FROM nvidia/cuda:9.0-devel-ubuntu16.04
 
 # TensorFlow version is tightly coupled to CUDA and cuDNN so it should be selected carefully
-ENV TENSORFLOW_VERSION=1.6.0
+ENV TENSORFLOW_VERSION=1.8.0
 ENV CUDNN_VERSION=7.0.5.15-1+cuda9.0
-ENV NCCL_VERSION=2.1.15-1+cuda9.0
+ENV NCCL_VERSION=2.2.12-1+cuda9.0
 
 ENV PYTHON_VERSION=3.5
 
@@ -48,7 +48,7 @@ RUN mkdir /tmp/openmpi && \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
-    HOROVOD_GPU_ALLREDUCE=NCCL pip install --no-cache-dir horovod && \
+    HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir horovod==0.13.2 && \
     ldconfig
 
 # Create a wrapper for OpenMPI to allow running as root by default

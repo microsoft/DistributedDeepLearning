@@ -1,9 +1,10 @@
 FROM nvidia/cuda:9.0-devel-ubuntu16.04
 
 # TensorFlow version is tightly coupled to CUDA and cuDNN so it should be selected carefully
-ENV TENSORFLOW_VERSION=1.6.0
+ENV TENSORFLOW_VERSION=1.8.0
+ENV PYTORCH_VERSION=0.4.0
 ENV CUDNN_VERSION=7.0.5.15-1+cuda9.0
-ENV NCCL_VERSION=2.1.15-1+cuda9.0
+ENV NCCL_VERSION=2.2.12-1+cuda9.0
 
 ENV PYTHON_VERSION=3.5
 
@@ -14,22 +15,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         cmake \
         git \
         curl \
-        nano \
+        vim \
         wget \
         ca-certificates \
-        libcudnn7=$CUDNN_VERSION \
-        libnccl2=$NCCL_VERSION \
-        libnccl-dev=$NCCL_VERSION \
+        libcudnn7=${CUDNN_VERSION} \
+        libnccl2=${NCCL_VERSION} \
+        libnccl-dev=${NCCL_VERSION} \
         libjpeg-dev \
         libpng-dev \
-        python$PYTHON_VERSION \
-        python$PYTHON_VERSION-dev
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-dev
 
-RUN ln -s /usr/bin/python$PYTHON_VERSION /usr/bin/python
+RUN ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
 
 RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     rm get-pip.py
+
 
 # Install PyTorch
 RUN pip install http://download.pytorch.org/whl/cu90/torch-0.4.0-cp35-cp35m-linux_x86_64.whl && \
@@ -49,7 +51,7 @@ RUN mkdir /tmp/openmpi && \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
-    HOROVOD_GPU_ALLREDUCE=NCCL pip install --no-cache-dir horovod && \
+    HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.13.2 && \
     ldconfig
 
 # Create a wrapper for OpenMPI to allow running as root by default
@@ -61,8 +63,8 @@ RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
 # Configure OpenMPI to run good defaults:
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
 RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
-    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
-    echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
+    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf #&& \
+#    echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf && \

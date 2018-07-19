@@ -8,9 +8,10 @@ AZ_BATCHAI_OUTPUT_MODEL
 AZ_BATCHAI_JOB_TEMP_DIR
 """
 import logging
+import sys
+from functools import lru_cache
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from data_generator import FakeDataGenerator
 
 from timer import Timer
 
@@ -20,11 +21,18 @@ from keras.preprocessing import image
 import tensorflow as tf
 import os
 
+
+def _str_to_bool(in_str):
+    if 't' in in_str.lower():
+        return True
+    else:
+        return False
+
 _WIDTH = 224
 _HEIGHT = 224
 _CHANNELS = 3
 _LR = 0.001
-_EPOCHS = 1
+_EPOCHS = os.getenv('EPOCHS', 1)
 _BATCHSIZE = 64
 _R_MEAN = 123.68
 _G_MEAN = 116.78
@@ -35,22 +43,54 @@ _BUFFER = 10
 _WARMUP_EPOCHS = 5
 _WEIGHT_DECAY = 0.00005
 
-def _str_to_bool(in_str):
-    if 't' in in_str.lower():
-        return True
-    else:
-        return False
-
+_NUM_WORKERS=int(os.getenv('NUM_WORKERS', 10))
+_MAX_QUEUE_SIZE=int(os.getenv('MAX_QUEUE_SIZE', 10))
+_MULTIPROCESSING=_str_to_bool(os.getenv('MULTIPROCESSING', 'False'))
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
+_FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
+_DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
 
 if _DISTRIBUTED:
     import horovod.keras as hvd
 
+def _get_rank():
+    if _DISTRIBUTED:
+        try:
+            return hvd.rank()
+        except:
+            return 0
+    else:
+        return 0
 
+class HorovodAdapter(logging.LoggerAdapter):
+    def __init__(self, logger):
+        self._str_epoch=''
+        self._gpu_rank=0
+        super(HorovodAdapter, self).__init__(logger, {})
 
+    def set_epoch(self, epoch):
+        self._str_epoch='[Epoch {}]'.format(epoch)
 
+    def process(self, msg, kwargs):
+        kwargs['extra'] = {
+            'gpurank': _get_rank(),
+            'epoch': self._str_epoch
+        }
+        return msg, kwargs
+
+@lru_cache()
+def _get_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler(stream=sys.stdout)
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(gpurank)d: %(epoch)s %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    adapter = HorovodAdapter(logger)
+    return adapter
 
 def _create_model():
+    logger = _get_logger()
     logger.info('Creating model')
     # Set up standard ResNet-50 model.
     model = keras.applications.resnet50.ResNet50(weights=None)
@@ -72,11 +112,12 @@ def _create_model():
 
 def _validation_data_iterator_from():
     # Validation data iterator.
-    test_gen = image.ImageDataGenerator(
-        zoom_range=(0.875, 0.875), preprocessing_function=keras.applications.resnet50.preprocess_input)
-    test_iter = test_gen.flow_from_directory(os.getenv('AZ_BATCHAI_INPUT_TEST'), batch_size=_BATCHSIZE,
-                                             target_size=(224, 224))
-    return test_iter
+    raise NotImplementedError('The flow from directory command expects data to be in directories and this is not implemented yet')
+    # test_gen = image.ImageDataGenerator(
+    #     zoom_range=(0.875, 0.875), preprocessing_function=keras.applications.resnet50.preprocess_input)
+    # test_iter = test_gen.flow_from_directory(os.path.join(os.getenv('AZ_BATCHAI_INPUT_TEST'), 'validation'), batch_size=_BATCHSIZE,
+    #                                          target_size=(224, 224))
+    # return test_iter
 
 
 def _training_data_iterator_from():
@@ -84,9 +125,13 @@ def _training_data_iterator_from():
     train_gen = image.ImageDataGenerator(
         width_shift_range=0.33, height_shift_range=0.33, zoom_range=0.5, horizontal_flip=True,
         preprocessing_function=keras.applications.resnet50.preprocess_input)
-    train_iter = train_gen.flow_from_directory(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), batch_size=_BATCHSIZE,
+    train_iter = train_gen.flow_from_directory(os.path.join(os.getenv('AZ_BATCHAI_INPUT_TRAIN'), 'train'), batch_size=_BATCHSIZE,
                                                target_size=(224, 224))
     return train_iter
+
+def _fake_data_iterator_from(length=_DATA_LENGTH):
+    return FakeDataGenerator(batch_size=_BATCHSIZE, n_classes=1000, length=length)
+
 
 
 def _get_optimizer(params, is_distributed=_DISTRIBUTED):
@@ -120,6 +165,7 @@ def _get_model_dir(is_distributed=_DISTRIBUTED):
 
 
 def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
+    logger = _get_logger()
     if is_distributed:
         logger.info('Rank: {} Cluster Size {}'.format(hvd.local_rank(), hvd.size()))
         return [
@@ -148,6 +194,20 @@ def _get_hooks(is_distributed=_DISTRIBUTED, verbose=1):
     else:
         return []
 
+class LoggerCallback(keras.callbacks.Callback):
+
+    def __init__(self, logger, data_length):
+        self._timer = Timer(output=logger.info, prefix="Epoch duration: ", fmt="{:.3f} seconds")
+        self._data_length=data_length
+
+    def on_epoch_begin(self, epoch, logs):
+        logger = _get_logger()
+        logger.set_epoch(epoch)
+        self._timer.start()
+
+    def on_epoch_end(self, epoch, logs):
+        duration = self._timer.elapsed
+        _log_summary(self._data_length, duration)
 
 def _is_master(is_distributed=_DISTRIBUTED):
     if is_distributed:
@@ -158,13 +218,25 @@ def _is_master(is_distributed=_DISTRIBUTED):
     else:
         return True
 
+def _log_summary(data_length, duration):
+    logger = _get_logger()
+    images_per_second = data_length / duration
+    logger.info('Data length:      {}'.format(data_length))
+    logger.info('Total duration:   {:.3f}'.format(duration))
+    logger.info('Total images/sec: {:.3f}'.format(images_per_second))
+    logger.info('Batch size:       (Per GPU {}: Total {})'.format(_BATCHSIZE, hvd.size()*_BATCHSIZE if _DISTRIBUTED else _BATCHSIZE))
+    logger.info('Distributed:      {}'.format('True' if _DISTRIBUTED else 'False'))
+    logger.info('Num GPUs:         {:.3f}'.format(hvd.size() if _DISTRIBUTED else 1))
+    logger.info('Dataset:          {}'.format('Synthetic' if _FAKE else 'Imagenet'))
+
 
 def main():
     verbose=0
+    logger = _get_logger()
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
-        logger.info("Runnin Distributed")
         hvd.init()
+        logger.info("Runnin Distributed")
         verbose = 1 if hvd.rank() == 0 else 0
 
     logger.info("Tensorflow version {}".format(tf.__version__))
@@ -173,11 +245,14 @@ def main():
     # Horovod: broadcast resume_from_epoch from rank 0 (which will have
     # checkpoints) to other ranks.
     resume_from_epoch = 0
-    resume_from_epoch = hvd.broadcast(resume_from_epoch, 0, name='resume_from_epoch')
+    if _DISTRIBUTED:
+        resume_from_epoch = hvd.broadcast(resume_from_epoch, 0, name='resume_from_epoch')
 
-    train_iter = _training_data_iterator_from()
-
-    # test_iter = _validation_data_iterator_from()
+    if _FAKE:
+        train_iter = _fake_data_iterator_from()
+    else:
+        train_iter = _training_data_iterator_from()
+        # test_iter = _validation_data_iterator_from()
 
     model = _create_model()
 
@@ -196,6 +271,8 @@ def main():
     checkpoint_format = os.path.join(model_dir, 'checkpoint-{epoch}.h5')
 
     callbacks = _get_hooks()
+    callbacks.append(LoggerCallback(logger, len(train_iter)*_BATCHSIZE))
+
     # Horovod: save checkpoints only on the first worker to prevent other workers from corrupting them.
     if _is_master():
         callbacks.append(keras.callbacks.ModelCheckpoint(checkpoint_format))
@@ -206,30 +283,31 @@ def main():
     if resume_from_epoch > 0 and _is_master():
         model.load_weights(checkpoint_format.format(epoch=resume_from_epoch))
 
+    logger.info('Training...')
+    # Train the model. The training will randomly sample 1 / N batches of training data and
+    # 3 / N batches of validation data on every worker, where N is the number of workers.
+    # Over-sampling of validation data helps to increase probability that every validation
+    # example will be evaluated.
+    num_workers = hvd.size() if _DISTRIBUTED else 1
+    model.fit_generator(train_iter,
+                        steps_per_epoch=len(train_iter) // num_workers,
+                        callbacks=callbacks,
+                        epochs=_EPOCHS,
+                        verbose=verbose,
+                        workers=_NUM_WORKERS,
+                        max_queue_size=_MAX_QUEUE_SIZE,
+                        use_multiprocessing=_MULTIPROCESSING,
+                        initial_epoch=resume_from_epoch)
 
-    with Timer(output=logger.info, prefix="Training"):
-        logger.info('Training...')
-        # Train the model. The training will randomly sample 1 / N batches of training data and
-        # 3 / N batches of validation data on every worker, where N is the number of workers.
-        # Over-sampling of validation data helps to increase probability that every validation
-        # example will be evaluated.
-        model.fit_generator(train_iter,
-                            steps_per_epoch=len(train_iter) // hvd.size(),
-                            callbacks=callbacks,
-                            epochs=_EPOCHS,
-                            verbose=verbose,
-                            workers=4,
-                            initial_epoch=resume_from_epoch)
-                            # validation_data=test_iter,
-                            # validation_steps=3 * len(test_iter) // hvd.size())
-
-    # # Evaluate the model on the full data set.
-    # with Timer(output=logger.info, prefix="Testing"):
-    #     logger.info('Testing...')
-    #     score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=4))
-    #     if verbose:
-    #         print('Test loss:', score[0])
-    #     print('Test accuracy:', score[1])
+    # _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
+    # if _FAKE is False:
+        # Evaluate the model on the full data set.
+        # with Timer(output=logger.info, prefix="Testing"):
+        #     logger.info('Testing...')
+        #     score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=10))
+        #     if verbose:
+        #         print('Test loss:', score[0])
+        #     print('Test accuracy:', score[1])
 
 
 if __name__ == '__main__':
