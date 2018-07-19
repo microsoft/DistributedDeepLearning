@@ -16,8 +16,7 @@ from os import path
 
 import pandas as pd
 import tensorflow as tf
-import tensorflow.contrib.slim.nets as nets
-from tensorflow.contrib import slim
+from resnet_model import resnet_v1
 from toolz import pipe
 from timer import Timer
 import numpy as np
@@ -153,6 +152,13 @@ def _get_optimizer(params, is_distributed=_DISTRIBUTED):
     else:
         return tf.train.MomentumOptimizer(learning_rate=params["learning_rate"], momentum=0.9)
 
+def build_network(features, mode, params):
+    network = resnet_v1(
+        resnet_depth=50,
+        num_classes=params['classes'],
+        data_format='channels_first')
+    return network(
+        inputs=features, is_training=(mode == tf.estimator.ModeKeys.TRAIN))
 
 def model_fn(features, labels, mode, params):
     """
@@ -164,11 +170,8 @@ def model_fn(features, labels, mode, params):
     """
     logger=_get_logger()
     logger.info('Creating model in {} mode'.format(mode))
-    with slim.arg_scope(nets.resnet_v1.resnet_arg_scope()):
-        logits, _ = resnet_v1_50(features,
-                                 num_classes=params['classes'],
-                                 is_training=True if mode=='train' else False)
-        logits = tf.reshape(logits, shape=[-1, params['classes']])
+
+    logits = build_network(features, mode, params)
 
     if mode == tf.estimator.ModeKeys.PREDICT:
         # Softmax output of the neural network.
