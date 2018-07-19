@@ -405,11 +405,11 @@ def main():
                                    config=run_config)
 
     hooks = _get_hooks()
-
+    num_gpus = hvd.size() if _DISTRIBUTED else 1
     with Timer(output=logger.info, prefix="Training") as t:
         logger.info('Training...')
         model.train(input_fn=train_input_fn,
-                    steps=_EPOCHS * train_input_fn.length // (_BATCHSIZE * hvd.size()),
+                    steps=_EPOCHS * train_input_fn.length // (_BATCHSIZE * num_gpus),
                     hooks=hooks)
 
     _log_summary(_EPOCHS * train_input_fn.length, t.elapsed)
