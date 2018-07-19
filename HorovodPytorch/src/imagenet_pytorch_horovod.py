@@ -253,7 +253,7 @@ def _get_sampler(dataset, is_distributed=_DISTRIBUTED):
         return torch.utils.data.distributed.DistributedSampler(
             dataset, num_replicas=hvd.size(), rank=hvd.rank())
     else:
-        return torch.utils.data.sampler.Sampler(dataset)
+        return torch.utils.data.sampler.RandomSampler(dataset)
 
 
 def main():
@@ -321,7 +321,8 @@ def main():
     for epoch in range(_EPOCHS):
         with Timer(output=logger.info, prefix="Training") as t:
             model.train()
-            train_sampler.set_epoch(epoch)
+            if _DISTRIBUTED:
+                train_sampler.set_epoch(epoch)
             train(train_loader, model, criterion, optimizer, epoch)
 
         _log_summary(len(train_dataset), t.elapsed)
