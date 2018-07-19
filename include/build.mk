@@ -30,7 +30,7 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
 	--env AZ_BATCHAI_OUTPUT_MODEL='/mnt/model' \
 	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output' \
 	--env AZ_BATCHAI_INPUT_SCRIPTS='/mnt/script' \
-	--env PYTHONPATH=/mnt/common
+	--env PYTHONPATH=/mnt/common/
 
 
 define execute_mpi
