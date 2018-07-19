@@ -48,7 +48,6 @@ _DATA_LENGTH = int(
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
 
-resnet_v1_50 = nets.resnet_v1.resnet_v1_50
 
 tf_logger = logging.getLogger('tensorflow')
 tf_logger.setLevel(logging.INFO)
