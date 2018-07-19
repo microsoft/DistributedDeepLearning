@@ -8,6 +8,6 @@ image-intel:=$(name_prefix)/horovod-intel-pytorch:$(tag)
 intel-path:=$(PWD)/Docker/horovod-intel
 image-open:=$(name_prefix)/horovod-pytorch:$(tag)
 open-path:=$(PWD)/Docker/horovod
-
+script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py
 include ../include/build.mk
 

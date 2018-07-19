@@ -8,6 +8,6 @@ image-intel:=$(name_prefix)/horovod-intel-keras:$(tag)
 intel-path:=$(PWD)/Docker/horovod-intel
 image-open:=$(name_prefix)/horovod-keras:$(tag)
 open-path:=$(PWD)/Docker/horovod
-
+script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py
 include ../include/build.mk
 
