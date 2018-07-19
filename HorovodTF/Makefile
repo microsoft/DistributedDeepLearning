@@ -9,6 +9,6 @@ image-intel:=$(name_prefix)/horovod-intel:$(tag)
 intel-path:=$(PWD)/Docker/horovod-intel
 image-open:=$(name_prefix)/horovod:$(tag)
 open-path:=$(PWD)/Docker/horovod
-
+script:=\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py
 include ../include/build.mk
 

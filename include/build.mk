@@ -15,18 +15,22 @@ DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
 FAKE:='False'
 FAKE_DATA_LENGTH:=1281167
+ROOT:=$(dirname $(dirname ${PWD))
 
 
-setup_volumes:=-v $(PWD)/src/execution:/mnt/script \
+setup_volumes:=-v $(PWD)/src:/mnt/script \
 	-v $(DATA_DIR):/mnt/input \
 	-v $(DATA_DIR)/temp/model:/mnt/model \
-	-v $(DATA_DIR)/temp/output:/mnt/output
+	-v $(DATA_DIR)/temp/output:/mnt/output \
+	-v $(ROOT)/common:/mnt/common
 
 
 setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
 	--env AZ_BATCHAI_INPUT_TEST='/mnt/input' \
 	--env AZ_BATCHAI_OUTPUT_MODEL='/mnt/model' \
-	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output'
+	--env AZ_BATCHAI_JOB_TEMP_DIR='/mnt/output' \
+	--env AZ_BATCHAI_INPUT_SCRIPTS='/mnt/script' \
+	--env PYTHONPATH=/mnt/common:\$$PYTHONPATH
 
 
 define execute_mpi
@@ -72,13 +76,13 @@ build-intel:
 	docker build -t $(image-intel) $(intel-path)
 
 run-mpi:
-	$(call execute_mpi, $(image-open))
+	$(call execute_mpi, $(image-open), $(script))
 
 run-mpi-intel:
-	$(call execute_mpi_intel, $(image-intel))
+	$(call execute_mpi_intel, $(image-intel), $(script))
 
 run:
-	$(call execute, $(image-open))
+	$(call execute, $(image-open), $(script))
 
 push:
 	docker push $(image-open)
