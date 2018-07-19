@@ -35,6 +35,7 @@ setup_environment:=--env AZ_BATCHAI_INPUT_TRAIN='/mnt/input' \
 
 define execute_mpi
  nvidia-docker run -it \
+ --shm-size="8g" \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
@@ -46,6 +47,7 @@ endef
 
 define execute_mpi_intel
  nvidia-docker run -it \
+ --shm-size="8g" \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='True' \
@@ -57,6 +59,7 @@ endef
 
 define execute
  nvidia-docker run -it \
+ --shm-size="8g" \
  $(setup_volumes) \
  $(setup_environment) \
  --env DISTRIBUTED='False' \
