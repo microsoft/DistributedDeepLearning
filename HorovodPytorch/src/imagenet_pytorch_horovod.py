@@ -229,7 +229,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss.backward()
         optimizer.step()
         if i % 100 == 0:
-            logger.info(msg.format(epoch, t.elapsed, loss.item(), i * len(data)))
+            logger.info(msg.format(t.elapsed, loss.item(), i * len(data)))
             t.start()
 
 
