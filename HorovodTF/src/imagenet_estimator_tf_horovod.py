@@ -274,7 +274,7 @@ def _create_labels(batch_size, num_batches, n_classes):
     return np.random.choice(n_classes, batch_size * num_batches)
 
 
-def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
+def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000, num_batches=20):
     """ Creates fake dataset
 
     Data is returned in NCHW since this tends to be faster on GPUs
@@ -282,11 +282,10 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
     logger = _get_logger()
     logger.info('Creating fake data function')
 
-    def fake_data_generator(num_batches=60):
-        logger.info('Creating fake data***')
-        data_array = _create_data(_BATCHSIZE, num_batches, (_HEIGHT, _WIDTH), _CHANNELS)
-        labels_array = _create_labels(_BATCHSIZE, num_batches, 1000)
+    data_array = _create_data(_BATCHSIZE, num_batches, (_HEIGHT, _WIDTH), _CHANNELS)
+    labels_array = _create_labels(_BATCHSIZE, num_batches, 1000)
 
+    def fake_data_generator():
         for i in range(num_batches):
             yield data_array[i * _BATCHSIZE:(i + 1) * _BATCHSIZE], labels_array[i * _BATCHSIZE:(i + 1) * _BATCHSIZE]
 
@@ -295,7 +294,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
                                                   output_shapes=(tf.TensorShape([None, _CHANNELS, _HEIGHT, _WIDTH]),
                                                                  tf.TensorShape([None])))
 
-    train_data = (train_data.shuffle(60 * _BATCHSIZE)
+    train_data = (train_data.shuffle(20 * _BATCHSIZE)
                   .repeat()
                   .prefetch(_BUFFER))
 
