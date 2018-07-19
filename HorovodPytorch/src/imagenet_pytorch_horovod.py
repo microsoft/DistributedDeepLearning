@@ -224,13 +224,10 @@ def train(train_loader, model, criterion, optimizer, epoch):
     logger.set_epoch(epoch)
     for i, (data, target) in enumerate(train_loader):
         data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
-
         optimizer.zero_grad()
-
         # compute output
         output = model(data)
         loss = criterion(output, target)
-
         # compute gradient and do SGD step
         loss.backward()
         optimizer.step()
@@ -251,20 +248,25 @@ def _log_summary(data_length, duration):
     logger.info('Dataset:          {}'.format('Synthetic' if _FAKE else 'Imagenet'))
 
 
+def _get_sampler(dataset, is_distributed=_DISTRIBUTED):
+    if is_distributed:
+        return torch.utils.data.distributed.DistributedSampler(
+            dataset, num_replicas=hvd.size(), rank=hvd.rank())
+    else:
+        return torch.utils.data.sampler.Sampler(dataset)
+
 
 def main():
+    logger = _get_logger()
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
 
         hvd.init()
-        logger = _get_logger()
         logger.info("Runnin Distributed")
         torch.manual_seed(_SEED)
         # Horovod: pin GPU to local rank.
         torch.cuda.set_device(hvd.local_rank())
         torch.cuda.manual_seed(_SEED)
-    else:
-        logger = _get_logger()
 
     logger.info("PyTorch version {}".format(torch.__version__))
 
@@ -286,9 +288,8 @@ def main():
                 transforms.ToTensor(),
                 normalize]))
 
-    train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
 
+    train_sampler=_get_sampler(train_dataset)
     kwargs = {'num_workers': 4, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
@@ -302,16 +303,18 @@ def main():
 
     model.cuda()
 
-    # Horovod: broadcast parameters.
-    hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+    if _DISTRIBUTED:
+        # Horovod: broadcast parameters.
+        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
 
+    num_gpus= hvd.size() if _DISTRIBUTED else 1
     # Horovod: scale learning rate by the number of GPUs.
-    optimizer = optim.SGD(model.parameters(), lr=_LR * hvd.size(),
+    optimizer = optim.SGD(model.parameters(), lr=_LR * num_gpus,
                           momentum=0.9)
-
-    # Horovod: wrap optimizer with DistributedOptimizer.
-    optimizer = hvd.DistributedOptimizer(
-        optimizer, named_parameters=model.named_parameters())
+    if _DISTRIBUTED:
+        # Horovod: wrap optimizer with DistributedOptimizer.
+        optimizer = hvd.DistributedOptimizer(
+            optimizer, named_parameters=model.named_parameters())
 
     criterion=F.cross_entropy
     # Main training-loop
