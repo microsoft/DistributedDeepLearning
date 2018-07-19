@@ -2,9 +2,9 @@
 
 This repo contains a number of examples of training a ResNet50 network with the Imagenet dataset in various Deep Learning frameworks.
 
-[Horovod + Keras](HorovodKeras)
-[Horovod + Tensorflow](HorovodTF)
-[Horovod + PyTorch](HorovodPytorch)
+[Horovod + Keras](HorovodKeras)  
+[Horovod + Tensorflow](HorovodTF)  
+[Horovod + PyTorch](HorovodPytorch)  
 
 
 # Contributing
