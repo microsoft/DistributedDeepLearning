@@ -280,9 +280,10 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
     Data is returned in NCHW since this tends to be faster on GPUs
     """
     logger = _get_logger()
-    logger.info('Creating fake data')
+    logger.info('Creating fake data function')
 
-    def fake_data_generator(num_batches=20):
+    def fake_data_generator(num_batches=60):
+        logger.info('Creating fake data***')
         data_array = _create_data(_BATCHSIZE, num_batches, (_HEIGHT, _WIDTH), _CHANNELS)
         labels_array = _create_labels(_BATCHSIZE, num_batches, 1000)
 
@@ -294,7 +295,7 @@ def _create_fake_data_fn(train_length=_DATA_LENGTH, valid_length=50000):
                                                   output_shapes=(tf.TensorShape([None, _CHANNELS, _HEIGHT, _WIDTH]),
                                                                  tf.TensorShape([None])))
 
-    train_data = (train_data.shuffle(20 * _BATCHSIZE)
+    train_data = (train_data.shuffle(60 * _BATCHSIZE)
                   .repeat()
                   .prefetch(_BUFFER))
 
