@@ -62,10 +62,10 @@ define execute
  --env DISTRIBUTED='False' \
  --env FAKE=$(FAKE) \
  --env FAKE_DATA_LENGTH=$(FAKE_DATA_LENGTH) \
- $(1) bash -c "python $(2)"
+ $(1) bash -c "ipython"
 endef
 
-
+#"python $(2)"
 help:
 	echo "$$PROJECT_HELP_MSG" | less
 
