@@ -15,7 +15,7 @@ DATA_DIR:=/mnt/imagenet
 PWD:=$(shell pwd)
 FAKE:='False'
 FAKE_DATA_LENGTH:=1281167
-ROOT:=$(shell dirname $(shell dirname ${PWD}))
+ROOT:=$(shell dirname ${PWD})
 
 
 setup_volumes:=-v $(PWD)/src:/mnt/script \
