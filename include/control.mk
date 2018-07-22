@@ -46,7 +46,8 @@ define generate_job_local
  	--filename job.json \
  	--node_count 1 \
  	--model $(2) \
- 	--ppn $(3)
+ 	--ppn $(3) \
+ 	$(4)
 endef
 
 
