@@ -231,7 +231,7 @@ def _log_summary(data_length, duration):
 
 
 def main():
-    verbose=0
+    verbose=1
     logger = _get_logger()
     if _DISTRIBUTED:
         # Horovod: initialize Horovod.
