@@ -42,7 +42,7 @@ endef
 
 
 define generate_job_local
- python ../generate_job_spec.py $(1) local \
+ python ../../generate_job_spec.py $(1) local \
  	--filename job.json \
  	--node_count 1 \
  	--model $(2) \
