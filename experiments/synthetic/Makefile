@@ -16,8 +16,8 @@ define submit_keras
 endef
 
 define submit_keras_local
-	$(call generate_job_local,masalvar/horovod-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
-	$(call submit_job, $(3))
+	$(call generate_job_local,masalvar/horovod-keras:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_keras_horovod.py,$(1), --synthetic_length ${FAKE_DATA_LENGTH})
+	$(call submit_job, $(2))
 endef
 
 define submit_tf_intel
@@ -31,8 +31,8 @@ define submit_tf
 endef
 
 define submit_tf_local
-	$(call generate_job_local,masalvar/horovod:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
-	$(call submit_job, $(3))
+	$(call generate_job_local,masalvar/horovod:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1), --synthetic_length ${FAKE_DATA_LENGTH})
+	$(call submit_job, $(2))
 endef
 
 define submit_pytorch
@@ -41,8 +41,8 @@ define submit_pytorch
 endef
 
 define submit_pytorch_local
-	$(call generate_job_local,masalvar/horovod-pytorch,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
-	$(call submit_job, $(3))
+	$(call generate_job_local,masalvar/horovod-pytorch,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1), --synthetic_length ${FAKE_DATA_LENGTH})
+	$(call submit_job, $(2))
 endef
 
 
@@ -79,7 +79,7 @@ submit-keras-intel4:
 	$(call submit_keras_intel,1,$(PROCESSES_PER_NODE),keras-intel-4)
 
 submit-keras-local:
-	$(call submit_keras_local,1,1,keras-local)
+	$(call submit_keras_local,1,keras-local)
 
 
 submit-tf-intel32:
@@ -95,7 +95,7 @@ submit-tf-intel4:
 	$(call submit_tf_intel,1,$(PROCESSES_PER_NODE),tf-intel-4)
 
 submit-tf-local:
-	$(call submit_tf_local,1,1,tf-local)
+	$(call submit_tf_local,1,tf-local)
 
 
 submit-pytorch32:
@@ -111,4 +111,4 @@ submit-pytorch4:
 	$(call submit_pytorch,1,$(PROCESSES_PER_NODE),pytorch-4)
 
 submit-pytorch-local:
-	$(call submit_pytorch_local,1,1,pytorch-local)
+	$(call submit_pytorch_local,1,pytorch-local)
