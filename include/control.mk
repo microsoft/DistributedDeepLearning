@@ -43,9 +43,9 @@ endef
 
 define generate_job_local
  python ../../generate_job_spec.py $(1) local \
+ 	$(2) \
  	--filename job.json \
  	--node_count 1 \
- 	--model $(2) \
  	--ppn $(3) \
  	$(4)
 endef
