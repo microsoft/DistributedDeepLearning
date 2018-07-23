@@ -31,7 +31,7 @@ define submit_tf
 endef
 
 define submit_tf_local
-	$(call generate_job_local,masalvar/horovod:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1), --synthetic_length ${FAKE_DATA_LENGTH})
+	$(call generate_job_local,masalvar/horovod-intel:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_estimator_tf_horovod.py,$(1), --synthetic_length ${FAKE_DATA_LENGTH})
 	$(call submit_job, $(2))
 endef
 
