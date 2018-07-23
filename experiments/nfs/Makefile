@@ -94,32 +94,32 @@ submit-keras-local:
 
 
 submit-tf-intel32:
-	$(call submit_tf_intel,32,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-32)
+	$(call submit_tf_intel,8,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-32)
 
 submit-tf-intel16:
-	$(call submit_tf_intel,16,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-16)
+	$(call submit_tf_intel,4,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-16)
 
 submit-tf-intel8:
-	$(call submit_tf_intel,8,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-8)
+	$(call submit_tf_intel,2,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-8)
 
 submit-tf-intel4:
-	$(call submit_tf_intel,4,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-4)
+	$(call submit_tf_intel,1,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-intel-4)
 
 submit-tf-local:
 	$(call submit_tf_local,1, --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,tf-local)
 
 
 submit-pytorch32:
-	$(call submit_pytorch,32,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-32)
+	$(call submit_pytorch,8,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-32)
 
 submit-pytorch16:
-	$(call submit_pytorch,16,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-16)
+	$(call submit_pytorch,4,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-16)
 
 submit-pytorch8:
-	$(call submit_pytorch,8,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-8)
+	$(call submit_pytorch,2,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-8)
 
 submit-pytorch4:
-	$(call submit_pytorch,4,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-4)
+	$(call submit_pytorch,1,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-4)
 
 submit-pytorch-local:
 	$(call submit_pytorch_local,1, --data \$$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet ,pytorch-local)
