@@ -30,7 +30,7 @@ _BATCHSIZE = 64
 _R_MEAN = 123.68
 _G_MEAN = 116.78
 _B_MEAN = 103.94
-_BUFFER = 128
+_BUFFER = 5
 
 
 def _str_to_bool(in_str):
