@@ -245,9 +245,15 @@ def _create_data_fn(train_path, test_path):
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
     train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE, num_parallel_batches=4)
     train_data = (train_data.shuffle(len(train_df))
-                  .repeat()
-                  .apply(train_data_transform)
-                  .prefetch(_BUFFER))
+                            .repeat()
+                            .apply(tf.contrib.data.parallel_interleave(
+                                    train_data_transform,
+                                    cycle_length=4,
+                                    buffer_output_elements=_BATCHSIZE)))
+    # train_data = (train_data.shuffle(len(train_df))
+    #               .repeat()
+    #               .apply(train_data_transform)
+    #               .prefetch(_BUFFER))
 
     validation_data = tf.data.Dataset.from_tensor_slices((validation_df['filenames'].values, validation_labels))
     validation_data_transform = tf.contrib.data.map_and_batch(_parse_function_eval, _BATCHSIZE, num_parallel_batches=4)
