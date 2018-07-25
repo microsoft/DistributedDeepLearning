@@ -127,8 +127,10 @@ def _transform_to_NCHW(img):
     return tf.transpose(img, [2, 0, 1]) # Transform from NHWC to NCHW
 
 
-def _parse_function_train(filename, label):
-    img_rgb = pipe(filename,
+def _parse_function_train(tensor):
+    logger=_get_logger()
+    logger.info(type(tensor))
+    img_rgb = pipe(tensor,
                    _preprocess_images,
                    _random_crop,
                    _random_horizontal_flip,
