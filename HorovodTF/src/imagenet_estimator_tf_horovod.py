@@ -136,7 +136,7 @@ def _parse_function_train(tensor, label):
     return img_rgb, label
 
 def _prep(filename, label):
-    return _preprocess_images(filename),_preprocess_labels(label)
+    return tf.data.Dataset.from_tensor_slices((_preprocess_images(filename), _preprocess_labels(label)))
 
 def _parse_function_eval(filename, label):
     return pipe(filename,
