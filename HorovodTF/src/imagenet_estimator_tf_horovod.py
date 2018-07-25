@@ -127,17 +127,16 @@ def _transform_to_NCHW(img):
     return tf.transpose(img, [2, 0, 1]) # Transform from NHWC to NCHW
 
 
-def _parse_function_train(tensor):
-    logger=_get_logger()
-    logger.info(type(tensor))
+def _parse_function_train(tensor, label):
     img_rgb = pipe(tensor,
-                   _preprocess_images,
                    _random_crop,
                    _random_horizontal_flip,
                    _transform_to_NCHW)
 
-    return img_rgb, _preprocess_labels(label)
+    return img_rgb, label
 
+def _prep(filename, label):
+    return _preprocess_images(filename),_preprocess_labels(label)
 
 def _parse_function_eval(filename, label):
     return pipe(filename,
@@ -246,12 +245,12 @@ def _create_data_fn(train_path, test_path):
 
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
     train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE, num_parallel_batches=4)
+    train_data = train_data.apply(tf.contrib.data.parallel_interleave(
+        _prep, cycle_length=4, buffer_output_elements=_BATCHSIZE))
+
     train_data = (train_data.shuffle(len(train_df))
                             .repeat()
-                            .apply(tf.contrib.data.parallel_interleave(
-                                    train_data_transform,
-                                    cycle_length=4,
-                                    buffer_output_elements=_BATCHSIZE)))
+                            .apply(train_data_transform).prefetch(_BUFFER))
     # train_data = (train_data.shuffle(len(train_df))
     #               .repeat()
     #               .apply(train_data_transform)
