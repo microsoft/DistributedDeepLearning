@@ -30,7 +30,7 @@ _BATCHSIZE = 64
 _R_MEAN = 123.68
 _G_MEAN = 116.78
 _B_MEAN = 103.94
-_BUFFER = 5
+_BUFFER = 256
 
 
 def _str_to_bool(in_str):
@@ -246,11 +246,12 @@ def _create_data_fn(train_path, test_path):
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
     train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE, num_parallel_batches=4)
     train_data = train_data.apply(tf.contrib.data.parallel_interleave(
-        _prep, cycle_length=4, buffer_output_elements=5))
+        _prep, cycle_length=5, buffer_output_elements=5))
 
     train_data = (train_data.shuffle(512)
                             .repeat()
-                            .apply(train_data_transform).prefetch(_BUFFER))
+                            .apply(train_data_transform)
+                            .prefetch(_BUFFER))
     # train_data = (train_data.shuffle(len(train_df))
     #               .repeat()
     #               .apply(train_data_transform)
