@@ -246,7 +246,7 @@ def _create_data_fn(train_path, test_path):
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
     train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE, num_parallel_batches=4)
     train_data = train_data.apply(tf.contrib.data.parallel_interleave(
-        _prep, cycle_length=6, buffer_output_elements=512))
+        _prep, cycle_length=10, buffer_output_elements=512))
 
     train_data = (train_data.shuffle(512)
                             .repeat()
