@@ -244,11 +244,11 @@ def _create_data_fn(train_path, test_path):
     validation_labels = validation_df[['num_id']].values.ravel() - 1
 
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
-    train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE, num_parallel_batches=8)
+    train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE, num_parallel_batches=6)
     train_data = train_data.apply(tf.contrib.data.parallel_interleave(
-        _prep, cycle_length=6, buffer_output_elements=1024))
+        _prep, cycle_length=6, buffer_output_elements=2048))
 
-    train_data = (train_data.shuffle(1024)
+    train_data = (train_data.shuffle(2048)
                             .repeat()
                             .apply(train_data_transform)
                             .prefetch(_BUFFER))
