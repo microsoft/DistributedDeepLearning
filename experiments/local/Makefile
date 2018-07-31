@@ -1,7 +1,7 @@
 include ../experiments_config.mk
 
 NFS_NAME=batch${ID}nfs
-EXPERIMENT:=experiment_imagenet_${GPU_TYPE}
+EXPERIMENT:=experiment_imagenet_local_${GPU_TYPE}
 NFS_IP:=""
 
 include ../../include/control.mk
