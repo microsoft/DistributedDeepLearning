@@ -54,7 +54,7 @@ endef
 
 upload-nodeprep-scripts: set-storage
 	$(call upload_script, ../../cluster_config/docker.service)
-	$(call upload_script, ../../nodeprep.sh)
+	$(call upload_script, ../../cluster_config/nodeprep.sh)
 
 upload-download-script: set-storage
 	$(call upload_script, downloaddata.sh)
