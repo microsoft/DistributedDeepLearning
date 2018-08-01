@@ -54,9 +54,12 @@ endef
 
 upload-nodeprep-scripts: set-storage
 	$(call upload_script, ../../cluster_config/docker.service)
-	$(call upload_script, nodeprep.sh)
+	$(call upload_script, ../../nodeprep.sh)
 
-create-cluster: upload-nodeprep-scripts
+upload-download-script: set-storage
+	$(call upload_script, downloaddata.sh)
+
+create-cluster: upload-nodeprep-scripts upload-download-script
 	az batchai cluster create \
 	-w $(WORKSPACE) \
 	--name ${CLUSTER_NAME} \
