@@ -41,6 +41,11 @@ define submit_pytorch
 	$(call submit_job,$(4))
 endef
 
+define submit_pytorch_intel
+	$(call generate_job_intel,masalvar/horovod-intel-pytorch:9-1.8-.13.2,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1),$(2),$(3))
+	$(call submit_job,$(4))
+endef
+
 define submit_pytorch_local
 	$(call generate_job_local,masalvar/horovod-pytorch,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_horovod.py,$(1), $(2))
 	$(call submit_job, $(3))
@@ -127,6 +132,9 @@ submit-pytorch8:
 
 submit-pytorch4:
 	$(call submit_pytorch,1,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,pytorch-4)
+
+submit-pytorch-intel4:
+	$(call submit_pytorch_intel,1,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,pytorch-4)
 
 submit-pytorch-local:
 	$(call submit_pytorch_local,1, --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,pytorch-local)
