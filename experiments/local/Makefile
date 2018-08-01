@@ -134,7 +134,7 @@ submit-pytorch4:
 	$(call submit_pytorch,1,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,pytorch-4)
 
 submit-pytorch-intel4:
-	$(call submit_pytorch_intel,1,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,pytorch-4)
+	$(call submit_pytorch_intel,1,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,pytorch-intel-4)
 
 submit-pytorch-local:
 	$(call submit_pytorch_local,1, --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,pytorch-local)
