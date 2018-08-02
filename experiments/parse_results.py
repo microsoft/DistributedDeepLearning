@@ -50,7 +50,7 @@ def extact_data_length(data):
 def extract_batch_size(data):
     for line in data:
         if 'Batch size: ' in line:
-            return int(line.split(':')[-1].strip().split(' ').strip(')')[-1])
+            return int(line.split(':')[-1].strip().split(' ')[-1].strip(')'))
 
 
 def extact_dataset(data):
