@@ -84,9 +84,6 @@ create-cluster: upload-nodeprep-scripts upload-download-script
 upload-data-nfs:
 	$(call upload-data-nfs,$(NFS_IP))
 
-submit-all: submit-keras-intel32 submit-keras-intel16 submit-keras-intel8 submit-keras-intel4 submit-tf-intel32 \
-submit-tf-intel16 submit-tf-intel8 submit-tf-intel4 submit-pytorch32 submit-pytorch16 submit-pytorch8 submit-pytorch4 \
-submit-keras-local submit-tf-local submit-pytorch-local
 
 submit-keras-intel32:
 	$(call submit_keras_intel,8,$(PROCESSES_PER_NODE), --data \$$AZ_BATCHAI_MOUNT_ROOT/imagenet ,keras-intel-32)
