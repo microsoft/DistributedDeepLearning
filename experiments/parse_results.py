@@ -62,7 +62,7 @@ def extact_dataset(data):
 def extract_num_devices(data):
     for line in data:
         if 'Num GPUs: ' in line:
-            return int(line.split(': ')[-1].strip())
+            return int(float(line.split(': ')[-1].strip()))
 
 
 extraction_funcs = {
