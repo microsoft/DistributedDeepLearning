@@ -286,7 +286,7 @@ def main():
 
 
     train_sampler=_get_sampler(train_dataset)
-    kwargs = {'num_workers': 6, 'pin_memory': True}
+    kwargs = {'num_workers': 5, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=_BATCHSIZE, sampler=train_sampler, **kwargs)
 

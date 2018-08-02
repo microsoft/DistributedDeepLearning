@@ -12,6 +12,7 @@ endef
 export PROJECT_HELP_MSG
 
 DATA_DIR:=/mnt/imagenet
+#DATA_DIR:=/mnt/rmdsk
 PWD:=$(shell pwd)
 FAKE:='False'
 FAKE_DATA_LENGTH:=1281167

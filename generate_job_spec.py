@@ -41,7 +41,7 @@ cmd_for_openmpi = \
     python -u {script}""".replace('\n', '')
 
 # Running on single node without mpi
-cmd_local = """python -u {script}""".replace('\n', '')
+cmd_local = """{fake} {fake_length} python -u {script}""".replace('\n', '')
 
 cmd_choice_dict = {
     'openmpi': cmd_for_openmpi,
@@ -58,13 +58,13 @@ hosts_param = {
 fake_param = {
     'openmpi': '-x FAKE=True  ',
     'intelmpi': '-env FAKE=True ',
-    'local': ''
+    'local': ' FAKE=True '
 }
 
 fake_length_param = {
     'openmpi': '-x FAKE_DATA_LENGTH={}  ',
     'intelmpi': '-env FAKE_DATA_LENGTH={} ',
-    'local': ''
+    'local': ' FAKE_DATA_LENGTH={} '
 }
 
 

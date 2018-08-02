@@ -16,8 +16,7 @@ from os import path
 
 import pandas as pd
 import tensorflow as tf
-import tensorflow.contrib.slim.nets as nets
-from tensorflow.contrib import slim
+from resnet_model import resnet_v1
 from toolz import pipe
 from timer import Timer
 import numpy as np
@@ -31,7 +30,7 @@ _BATCHSIZE = 64
 _R_MEAN = 123.68
 _G_MEAN = 116.78
 _B_MEAN = 103.94
-_BUFFER = 40
+_BUFFER = 256
 
 
 def _str_to_bool(in_str):
@@ -45,11 +44,11 @@ _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
 _DATA_LENGTH = int(
     os.getenv('FAKE_DATA_LENGTH', 1281167))  # How much fake data to simulate, default to size of imagenet dataset
+_VALIDATION = _str_to_bool(os.getenv('VALIDATION', 'False'))
 
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
 
-resnet_v1_50 = nets.resnet_v1.resnet_v1_50
 
 tf_logger = logging.getLogger('tensorflow')
 tf_logger.setLevel(logging.INFO)
@@ -129,15 +128,16 @@ def _transform_to_NCHW(img):
     return tf.transpose(img, [2, 0, 1]) # Transform from NHWC to NCHW
 
 
-def _parse_function_train(filename, label):
-    img_rgb = pipe(filename,
-                   _preprocess_images,
+def _parse_function_train(tensor, label):
+    img_rgb = pipe(tensor,
                    _random_crop,
                    _random_horizontal_flip,
                    _transform_to_NCHW)
 
-    return img_rgb, _preprocess_labels(label)
+    return img_rgb, label
 
+def _prep(filename, label):
+    return tf.data.Dataset.from_tensor_slices(([_preprocess_images(filename)], [_preprocess_labels(label)]))
 
 def _parse_function_eval(filename, label):
     return pipe(filename,
@@ -153,6 +153,13 @@ def _get_optimizer(params, is_distributed=_DISTRIBUTED):
     else:
         return tf.train.MomentumOptimizer(learning_rate=params["learning_rate"], momentum=0.9)
 
+def build_network(features, mode, params):
+    network = resnet_v1(
+        resnet_depth=50,
+        num_classes=params['classes'],
+        data_format='channels_first')
+    return network(
+        inputs=features, is_training=(mode == tf.estimator.ModeKeys.TRAIN))
 
 def model_fn(features, labels, mode, params):
     """
@@ -164,11 +171,8 @@ def model_fn(features, labels, mode, params):
     """
     logger=_get_logger()
     logger.info('Creating model in {} mode'.format(mode))
-    with slim.arg_scope(nets.resnet_v1.resnet_arg_scope()):
-        logits, _ = resnet_v1_50(features,
-                                 num_classes=params['classes'],
-                                 is_training=True if mode=='train' else False)
-        logits = tf.reshape(logits, shape=[-1, params['classes']])
+
+    logits = build_network(features, mode, params)
 
     if mode == tf.estimator.ModeKeys.PREDICT:
         # Softmax output of the neural network.
@@ -241,14 +245,17 @@ def _create_data_fn(train_path, test_path):
     validation_labels = validation_df[['num_id']].values.ravel() - 1
 
     train_data = tf.data.Dataset.from_tensor_slices((train_df['filenames'].values, train_labels))
-    train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE)
-    train_data = (train_data.shuffle(len(train_df))
-                  .repeat()
-                  .apply(train_data_transform)
-                  .prefetch(_BUFFER))
+    train_data_transform = tf.contrib.data.map_and_batch(_parse_function_train, _BATCHSIZE, num_parallel_batches=5)
+    train_data = train_data.apply(tf.contrib.data.parallel_interleave(
+        _prep, cycle_length=5, buffer_output_elements=1024))
+
+    train_data = (train_data.shuffle(1024)
+                            .repeat()
+                            .apply(train_data_transform)
+                            .prefetch(_BUFFER))
 
     validation_data = tf.data.Dataset.from_tensor_slices((validation_df['filenames'].values, validation_labels))
-    validation_data_transform = tf.contrib.data.map_and_batch(_parse_function_eval, _BATCHSIZE)
+    validation_data_transform = tf.contrib.data.map_and_batch(_parse_function_eval, _BATCHSIZE, num_parallel_batches=4)
     validation_data = (validation_data.apply(validation_data_transform)
                        .prefetch(_BUFFER))
 
@@ -418,10 +425,10 @@ def main():
 
     _log_summary(_EPOCHS * train_input_fn.length, t.elapsed)
 
-    if _is_master() and _FAKE is False:
+    if _is_master() and _FAKE is False and _VALIDATION:
         with Timer(output=logger.info, prefix="Testing"):
             logger.info('Testing...')
-            # model.evaluate(input_fn=validation_input_fn)
+            model.evaluate(input_fn=validation_input_fn)
 
 
 if __name__ == '__main__':

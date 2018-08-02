@@ -42,11 +42,12 @@ endef
 
 
 define generate_job_local
- python ../generate_job_spec.py $(1) local \
+ python ../../generate_job_spec.py $(1) local \
+ 	$(2) \
  	--filename job.json \
  	--node_count 1 \
- 	--model $(2) \
- 	--ppn $(3)
+ 	--ppn $(3) \
+ 	$(4)
 endef
 
 
@@ -108,6 +109,7 @@ upload-scripts: set-storage
 	$(call upload_script, ../../HorovodKeras/src/data_generator.py)
 	$(call upload_script, ../../HorovodKeras/src/imagenet_keras_horovod.py)
 	$(call upload_script, ../../HorovodTF/src/imagenet_estimator_tf_horovod.py)
+	$(call upload_script, ../../HorovodTF/src/resnet_model.py)
 	$(call upload_script, ../../HorovodPytorch/src/imagenet_pytorch_horovod.py)
 	$(call upload_script, ../../common/timer.py)
 
@@ -128,7 +130,7 @@ list-clusters:
 	az batchai cluster list -w $(WORKSPACE) -o table
 
 list-nodes:
-	az batchai cluster list-nodes -n ${CLUSTER_NAME} -w $(WORKSPACE) -o table
+	az batchai cluster node list -c ${CLUSTER_NAME} -w $(WORKSPACE)
 
 list-jobs:
 	az batchai job list -w $(WORKSPACE) -e $(EXPERIMENT) -o table
