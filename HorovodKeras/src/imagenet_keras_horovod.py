@@ -37,7 +37,6 @@ _BATCHSIZE = 64
 _R_MEAN = 123.68
 _G_MEAN = 116.78
 _B_MEAN = 103.94
-_BUFFER = 10
 
 # Settings from https://arxiv.org/abs/1706.02677.
 _WARMUP_EPOCHS = 5
@@ -49,6 +48,8 @@ _MULTIPROCESSING=_str_to_bool(os.getenv('MULTIPROCESSING', 'False'))
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
 _DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data to simulate, default to size of imagenet dataset
+_VALIDATION = _str_to_bool(os.getenv('VALIDATION', 'False'))
+
 
 if _DISTRIBUTED:
     import horovod.keras as hvd
@@ -252,7 +253,7 @@ def main():
         train_iter = _fake_data_iterator_from()
     else:
         train_iter = _training_data_iterator_from()
-        # test_iter = _validation_data_iterator_from()
+        test_iter = _validation_data_iterator_from() if _VALIDATION else None
 
     model = _create_model()
 
@@ -299,15 +300,14 @@ def main():
                         use_multiprocessing=_MULTIPROCESSING,
                         initial_epoch=resume_from_epoch)
 
-    # _log_summary(len(train_iter)*_BATCHSIZE, t.elapsed)
-    # if _FAKE is False:
+    if _FAKE is False and _VALIDATION:
         # Evaluate the model on the full data set.
-        # with Timer(output=logger.info, prefix="Testing"):
-        #     logger.info('Testing...')
-        #     score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=10))
-        #     if verbose:
-        #         print('Test loss:', score[0])
-        #     print('Test accuracy:', score[1])
+        with Timer(output=logger.info, prefix="Testing"):
+            logger.info('Testing...')
+            score = hvd.allreduce(model.evaluate_generator(test_iter, len(test_iter), workers=10))
+            if verbose:
+                print('Test loss:', score[0])
+            print('Test accuracy:', score[1])
 
 
 if __name__ == '__main__':
