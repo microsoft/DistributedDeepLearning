@@ -66,7 +66,6 @@ def extract_num_devices(data):
 
 
 extraction_funcs = {
-    'Framework': extract_framework,
     'Images/Second': extract_images_per_second,
     'Batch Size': extract_batch_size,
     'Data Length': extact_data_length,
@@ -83,6 +82,7 @@ def parse_results(file):
     results_dict = {key: func(data) for key, func in extraction_funcs.items()}
     results_dict['MPI'] = extract_mpi_type(file)
     results_dict['GPU Type'] = extract_gpu_type(file)
+    results_dict['Framework'] = extract_framework(file)
     return results_dict
 
 
