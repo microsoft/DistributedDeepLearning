@@ -44,6 +44,7 @@ _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
 _DATA_LENGTH = int(
     os.getenv('FAKE_DATA_LENGTH', 1281167))  # How much fake data to simulate, default to size of imagenet dataset
+_VALIDATION = _str_to_bool(os.getenv('VALIDATION', 'False'))
 
 if _DISTRIBUTED:
     import horovod.tensorflow as hvd
@@ -424,10 +425,10 @@ def main():
 
     _log_summary(_EPOCHS * train_input_fn.length, t.elapsed)
 
-    if _is_master() and _FAKE is False:
+    if _is_master() and _FAKE is False and _VALIDATION:
         with Timer(output=logger.info, prefix="Testing"):
             logger.info('Testing...')
-            # model.evaluate(input_fn=validation_input_fn)
+            model.evaluate(input_fn=validation_input_fn)
 
 
 if __name__ == '__main__':
