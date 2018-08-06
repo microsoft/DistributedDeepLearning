@@ -44,4 +44,4 @@ RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu
 	cp ./azure.list /etc/apt/sources.list.d/ &&\
 	apt-key adv --keyserver packages.microsoft.com --recv-keys B02C46DF417A0893 &&\
 	apt-get update &&\
-	apt-get install azcopy
+	apt-get install -y --no-install-recommends azcopy
