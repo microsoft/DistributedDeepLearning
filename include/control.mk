@@ -22,7 +22,7 @@ export PROJECT_HELP_MSG
 
 
 define generate_job_intel
- python ../../generate_job_spec.py $(1) intelmpi \
+ python ../generate_job_spec.py $(1) intelmpi \
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
@@ -32,7 +32,7 @@ endef
 
 
 define generate_job_openmpi
- python ../../generate_job_spec.py $(1) openmpi \
+ python ../generate_job_spec.py $(1) openmpi \
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
@@ -42,7 +42,7 @@ endef
 
 
 define generate_job_local
- python ../../generate_job_spec.py $(1) local \
+ python ../generate_job_spec.py $(1) local \
  	$(2) \
  	--filename job.json \
  	--node_count 1 \
@@ -164,157 +164,102 @@ setup: select-subscription create-resource-group create-workspace create-storage
 #
 ####### Submit Jobs ######
 #
-#submit-jobs:
-#
-#	# Intel Jobs
-#	# 1gpuintel
-#	$(call generate_job_intel, 1, $(MODEL), 1)
-#	$(call submit_job, 1gpuintel)
-#
-#	# 1gpuintel
-#	$(call generate_job_intel, 1, $(MODEL), 2)
-#	$(call submit_job, 2gpuintel)
-#
-#	# 1gpuintel
-#	$(call generate_job_intel, 1, $(MODEL), 3)
-#	$(call submit_job, 3gpuintel)
-#
-#	# 1gpuintel
-#	$(call generate_job_intel, 1, $(MODEL), 4)
-#	$(call submit_job, 4gpuintel)
-#
-#	# 1gpuintel
-#	$(call generate_job_intel, 2, $(MODEL), 4)
-#	$(call submit_job, 8gpuintel)
-#
-#	# 1gpuintel
-#	$(call generate_job_intel, 4, $(MODEL), 4)
-#	$(call submit_job, 16gpuintel)
-#
-#	# 1gpuintel
-#	$(call generate_job_intel, 8, $(MODEL), 4)
-#	$(call submit_job, 32gpuintel)
-#
-#	# OpenMPI Jobs
-#	# 1gpuopen
-#	$(call generate_job_openmpi, 1, $(MODEL), 1)
-#	$(call submit_job, 1gpuopen)
-#
-#	# 1gpuopen
-#	$(call generate_job_openmpi, 1, $(MODEL), 2)
-#	$(call submit_job, 2gpuopen)
-#
-#	# 1gpuopen
-#	$(call generate_job_openmpi, 1, $(MODEL), 3)
-#	$(call submit_job, 3gpuopen)
-#
-#	# 1gpuopen
-#	$(call generate_job_openmpi, 1, $(MODEL), 4)
-#	$(call submit_job, 4gpuopen)
-#
-#	# 1gpuopen
-#	$(call generate_job_openmpi, 2, $(MODEL), 4)
-#	$(call submit_job, 8gpuopen)
-#
-#	# 1gpuopen
-#	$(call generate_job_openmpi, 4, $(MODEL), 4)
-#	$(call submit_job, 16gpuopen)
-#
-#	# 1gpuopen
-#	$(call generate_job_openmpi, 8, $(MODEL), 4)
-#	$(call submit_job, 32gpuopen)
-#
-#	# Local
-#	# 1gpulocal
-#	$(call generate_job_local, $(MODEL), 1)
-#	$(call submit_job, 1gpulocal)
-#
-#clean-jobs:
-#	$(call delete_job, 1gpuintel)
-#	$(call delete_job, 2gpuintel)
-#	$(call delete_job, 3gpuintel)
-#	$(call delete_job, 4gpuintel)
-#	$(call delete_job, 8gpuintel)
-#	$(call delete_job, 16gpuintel)
-#	$(call delete_job, 32gpuintel)
-#
-#	$(call delete_job, 1gpuopen)
-#	$(call delete_job, 2gpuopen)
-#	$(call delete_job, 3gpuopen)
-#	$(call delete_job, 4gpuopen)
-#	$(call delete_job, 8gpuopen)
-#	$(call delete_job, 16gpuopen)
-#	$(call delete_job, 32gpuopen)
-#
-#	$(call delete_job, 1gpulocal)
-#
-#
+submit-all: submit-keras-intel32 submit-keras-intel16 submit-keras-intel8 submit-keras-intel4 submit-tf-intel32 \
+submit-tf-intel16 submit-tf-intel8 submit-tf-intel4 submit-pytorch32 submit-pytorch16 submit-pytorch8 submit-pytorch4 \
+submit-keras-local submit-tf-local submit-pytorch-local
+
+clean-jobs:
+	$(call delete_job, tf-local)
+	$(call delete_job, tf-intel-4)
+	$(call delete_job, tf-intel-8)
+	$(call delete_job, tf-intel-16)
+	$(call delete_job, tf-intel-32)
+	
+	$(call delete_job, keras-local)
+	$(call delete_job, keras-intel-4)
+	$(call delete_job, keras-intel-8)
+	$(call delete_job, keras-intel-16)
+	$(call delete_job, keras-intel-32)
+	
+	$(call delete_job, pytorch-local)
+	$(call delete_job, pytorch-4)
+	$(call delete_job, pytorch-8)
+	$(call delete_job, pytorch-16)
+	$(call delete_job, pytorch-32)
+
 ####### Gather Results ######
-#
-#gather-results:results.json
-#	@echo "All results gathered"
-#
-#results.json: 1gpulocal_$(GPU_TYPE)_local.results 1gpuintel_$(GPU_TYPE)_intel.results 2gpuintel_$(GPU_TYPE)_intel.results 3gpuintel_$(GPU_TYPE)_intel.results \
-#4gpuintel_$(GPU_TYPE)_intel.results 8gpuintel_$(GPU_TYPE)_intel.results 16gpuintel_$(GPU_TYPE)_intel.results 32gpuintel_$(GPU_TYPE)_intel.results \
-#1gpuopen_$(GPU_TYPE)_open.results 2gpuopen_$(GPU_TYPE)_open.results 3gpuopen_$(GPU_TYPE)_open.results 4gpuopen_$(GPU_TYPE)_open.results 8gpuopen_$(GPU_TYPE)_open.results \
-#16gpuopen_$(GPU_TYPE)_open.results 32gpuopen_$(GPU_TYPE)_open.results
-#	python ../parse_results.py
-#
-#
-#1gpulocal_$(GPU_TYPE)_local.results:
-#	$(call stream_stdout, 1gpulocal)>1gpulocal_$(GPU_TYPE)_local.results
-#
-#
-#
-#1gpuintel_$(GPU_TYPE)_intel.results:
-#	$(call stream_stdout, 1gpuintel)>1gpuintel_$(GPU_TYPE)_intel.results
-#
-#2gpuintel_$(GPU_TYPE)_intel.results:
-#	$(call stream_stdout, 2gpuintel)>2gpuintel_$(GPU_TYPE)_intel.results
-#
-#3gpuintel_$(GPU_TYPE)_intel.results:
-#	$(call stream_stdout, 3gpuintel)>3gpuintel_$(GPU_TYPE)_intel.results
-#
-#4gpuintel_$(GPU_TYPE)_intel.results:
-#	$(call stream_stdout, 4gpuintel)>4gpuintel_$(GPU_TYPE)_intel.results
-#
-#8gpuintel_$(GPU_TYPE)_intel.results:
-#	$(call stream_stdout, 8gpuintel)>8gpuintel_$(GPU_TYPE)_intel.results
-#
-#16gpuintel_$(GPU_TYPE)_intel.results:
-#	$(call stream_stdout, 16gpuintel)>16gpuintel_$(GPU_TYPE)_intel.results
-#
-#32gpuintel_$(GPU_TYPE)_intel.results:
-#	$(call stream_stdout, 32gpuintel)>32gpuintel_$(GPU_TYPE)_intel.results
-#
-#
-#
-#1gpuopen_$(GPU_TYPE)_open.results:
-#	$(call stream_stdout, 1gpuopen)>1gpuopen_$(GPU_TYPE)_open.results
-#
-#2gpuopen_$(GPU_TYPE)_open.results:
-#	$(call stream_stdout, 2gpuopen)>2gpuopen_$(GPU_TYPE)_open.results
-#
-#3gpuopen_$(GPU_TYPE)_open.results:
-#	$(call stream_stdout, 3gpuopen)>3gpuopen_$(GPU_TYPE)_open.results
-#
-#4gpuopen_$(GPU_TYPE)_open.results:
-#	$(call stream_stdout, 4gpuopen)>4gpuopen_$(GPU_TYPE)_open.results
-#
-#8gpuopen_$(GPU_TYPE)_open.results:
-#	$(call stream_stdout, 8gpuopen)>8gpuopen_$(GPU_TYPE)_open.results
-#
-#16gpuopen_$(GPU_TYPE)_open.results:
-#	$(call stream_stdout, 16gpuopen)>16gpuopen_$(GPU_TYPE)_open.results
-#
-#32gpuopen_$(GPU_TYPE)_open.results:
-#	$(call stream_stdout, 32gpuopen)>32gpuopen_$(GPU_TYPE)_open.results
-#
-#clean-results:
-#	rm results.json
-#	rm *.results
-#
-#make plot: results.json
-#	python ../produce_plot.py
+
+gather-results:results.json
+	@echo "All results gathered"
+
+results.json: pytorch_1gpulocal_$(GPU_TYPE)_local.results pytorch_4gpuopen_$(GPU_TYPE)_open.results \
+			  pytorch_8gpuopen_$(GPU_TYPE)_open.results pytorch_16gpuopen_$(GPU_TYPE)_open.results \
+			  pytorch_32gpuopen_$(GPU_TYPE)_open.results \
+			  tf_1gpulocal_$(GPU_TYPE)_local.results tf_4gpuintel_$(GPU_TYPE)_intel.results \
+			  tf_8gpuintel_$(GPU_TYPE)_intel.results tf_16gpuintel_$(GPU_TYPE)_intel.results \
+			  tf_32gpuintel_$(GPU_TYPE)_intel.results \
+			  keras_1gpulocal_$(GPU_TYPE)_local.results keras_4gpuintel_$(GPU_TYPE)_intel.results \
+			  keras_8gpuintel_$(GPU_TYPE)_intel.results keras_16gpuintel_$(GPU_TYPE)_intel.results \
+			  keras_32gpuintel_$(GPU_TYPE)_intel.results 
+	python ../parse_results.py
+	
+
+pytorch_1gpulocal_$(GPU_TYPE)_local.results:
+	$(call stream_stdout, pytorch-local)>pytorch_1gpulocal_$(GPU_TYPE)_local.results
+
+pytorch_4gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch-4)>pytorch_4gpuopen_$(GPU_TYPE)_open.results
+
+pytorch_8gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch-8)>pytorch_8gpuopen_$(GPU_TYPE)_open.results
+
+pytorch_16gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch-16)>pytorch_16gpuopen_$(GPU_TYPE)_open.results
+
+pytorch_32gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch-32)>pytorch_32gpuopen_$(GPU_TYPE)_open.results
+
+
+
+
+tf_1gpulocal_$(GPU_TYPE)_local.results:
+	$(call stream_stdout, tf-local)>tf_1gpulocal_$(GPU_TYPE)_local.results
+
+tf_4gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, tf-intel-4)>tf_4gpuintel_$(GPU_TYPE)_intel.results
+
+tf_8gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, tf-intel-8)>tf_8gpuintel_$(GPU_TYPE)_intel.results
+
+tf_16gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, tf-intel-16)>tf_16gpuintel_$(GPU_TYPE)_intel.results
+
+tf_32gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, tf-intel-32)>tf_32gpuintel_$(GPU_TYPE)_intel.results
+
+
+
+keras_1gpulocal_$(GPU_TYPE)_local.results:
+	$(call stream_stdout, keras-local)>keras_1gpulocal_$(GPU_TYPE)_local.results
+
+keras_4gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, keras-intel-4)>keras_4gpuintel_$(GPU_TYPE)_intel.results
+
+keras_8gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, keras-intel-8)>keras_8gpuintel_$(GPU_TYPE)_intel.results
+
+keras_16gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, keras-intel-16)>keras_16gpuintel_$(GPU_TYPE)_intel.results
+
+keras_32gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, keras-intel-32)>keras_32gpuintel_$(GPU_TYPE)_intel.results
+	
+
+clean-results:
+	rm results.json
+	rm *.results
+
+make plot: results.json
+	python ../produce_plot.py
 
 .PHONY: help build push
