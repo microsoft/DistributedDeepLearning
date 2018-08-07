@@ -103,6 +103,10 @@ def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
         multithreaded_deserializer=True)
 
 
+def create_fake_mb_source():
+    pass
+
+
 def model_fn():
     # Input variables denoting the features and label data
     graph_input = C.input_variable((_CHANNELS, _HEIGHT, _WIDTH))
@@ -215,10 +219,14 @@ def main():
                              num_quantization_bits=_NUMQUANTIZEDBITS)
 
     logger.info('Creating data sources ...')
-    train_source = create_image_mb_source(
-        train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_DATA_LENGTH)
-    test_source = create_image_mb_source(
-        test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
+    if _FAKE:
+        train_source = create_fake_mb_source()
+        test_source = create_fake_mb_source()
+    else:
+        train_source = create_image_mb_source(
+            train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_DATA_LENGTH)
+        test_source = create_image_mb_source(
+            test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
 
     logger.info('Training...')
     train_and_test(network, trainer, train_source, test_source,
