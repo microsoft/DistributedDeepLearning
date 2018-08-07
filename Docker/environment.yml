@@ -1,0 +1,16 @@
+channels:
+ - conda-forge
+dependencies:
+  - python=3.6
+  - numpy
+  - pyyaml
+  - scipy
+  - ipython
+  - pandas
+  - jupyter
+  - ipykernel
+  - scikit-learn
+  - selenium
+  - phantomjs
+  - pillow
+  - bokeh=0.13.0
