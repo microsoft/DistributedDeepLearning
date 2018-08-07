@@ -28,28 +28,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# model dimensions
-_WIDTH = 224
-_HEIGHT = 224
-_CHANNELS = 3
-_LR = 0.001
-_EPOCHS = 1
-_BATCHSIZE = 64
-_MOMENTUM = 0.9
-_NUMCLASSES = 1000
-_MODELNAME = 'ResNet_ImageNet.model'
-_NUMQUANTIZEDBITS = 32
-_WD = 0.0001
-_NUMIMAGES = 1281167
-
-
 def _str_to_bool(in_str):
     if 't' in in_str.lower():
         return True
     else:
         return False
 
-    
+
+# model dimensions
+_WIDTH = 224
+_HEIGHT = 224
+_CHANNELS = 3
+_LR = 0.001
+_EPOCHS = os.getenv('EPOCHS', 1)
+_BATCHSIZE = 64
+_MOMENTUM = 0.9
+_NUMCLASSES = 1000
+_MODELNAME = 'ResNet_ImageNet.model'
+_NUMQUANTIZEDBITS = 32
+_WD = 0.0001
+
+
+_FAKE = _str_to_bool(os.getenv('FAKE', 'False'))
+# How much fake data to simulate, default to size of imagenet dataset
+_DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167))
 _DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 
 
@@ -168,7 +170,7 @@ def train_and_test(network, trainer, train_source, test_source, minibatch_size,
     }
     if _DISTRIBUTED:
         start_profiler(sync_gpu=True)
-        
+
     training_session(
         trainer=trainer,
         mb_source=train_source,
@@ -190,7 +192,7 @@ def main():
     data_path = os.getenv('AZ_BATCHAI_INPUT_TRAIN')
     logger.info("model_path: {}".format(model_path))
     logger.info("data_path: {}".format(data_path))
-    
+
     mean_data = os.path.join(data_path, 'ImageNet1K_mean.xml')
     train_data = os.path.join(data_path, 'train_map.txt')
     test_data = os.path.join(data_path, 'val_map.txt')
@@ -202,25 +204,25 @@ def main():
 
     logger.info("Creating model ...")
     network = model_fn()
-    
+
     logger.info("Creating trainer ...")
     trainer = create_trainer(network,
                              minibatch_size,
-                             _NUMIMAGES,
+                             _DATA_LENGTH,
                              learning_rate=_LR,
                              momentum=_MOMENTUM,
                              l2_reg_weight=_WD,
                              num_quantization_bits=_NUMQUANTIZEDBITS)
-    
+
     logger.info('Creating data sources ...')
     train_source = create_image_mb_source(
-        train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_NUMIMAGES)
+        train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_DATA_LENGTH)
     test_source = create_image_mb_source(
         test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
-    
+
     logger.info('Training...')
     train_and_test(network, trainer, train_source, test_source,
-                   minibatch_size, _NUMIMAGES, model_path)
+                   minibatch_size, _DATA_LENGTH, model_path)
 
     if _DISTRIBUTED:
         # Must call MPI finalize when process exit without exceptions
@@ -232,4 +234,3 @@ if __name__ == '__main__':
     logger.info("Starting routine. Distributed mode={}".format(_DISTRIBUTED))
     main()
     logger.info("Routine finished")
-    
