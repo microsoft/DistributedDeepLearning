@@ -69,6 +69,13 @@ define execute
  $(1) bash -c "python $(2)"
 endef
 
+define execute_jupyter
+ nvidia-docker run -p 8888:8888 -it \
+ --shm-size="8g" \
+ $(setup_volumes) \
+ $(setup_environment) \
+ $(1) bash -c "jupyter notebook --ip=* --no-browser --allow-root"
+endef
 
 help:
 	echo "$$PROJECT_HELP_MSG" | less
@@ -87,6 +94,9 @@ run-mpi-intel:
 
 run:
 	$(call execute, $(image-open), $(script))
+	
+run-jupyter:
+	$(call execute_jupyter, $(image-open))
 
 push:
 	docker push $(image-open)
