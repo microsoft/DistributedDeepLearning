@@ -74,7 +74,7 @@ define execute_jupyter
  --shm-size="8g" \
  $(setup_volumes) \
  $(setup_environment) \
- $(1) bash 
+ $(1) bash -c "jupyter notebook --ip=* --no-browser --allow-root"
 endef
 
 help:
