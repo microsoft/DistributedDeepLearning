@@ -74,7 +74,7 @@ define execute_jupyter
  --shm-size="8g" \
  $(setup_volumes) \
  $(setup_environment) \
- $(1) bash -c "source '/cntk/activate-cntk' jupyter notebook --ip=* --port=8888:8888 --no-browser --alow-root"
+ $(1) bash 
 endef
 
 help:
