@@ -51,6 +51,16 @@ define generate_job_local
 endef
 
 
+define generate_job_gloo
+ python ../generate_job_spec.py $(1) gloo \
+ 	$(2) \
+ 	--filename job.json \
+ 	--node_count $(3) \
+ 	--ppn $(4) \
+ 	$(5)
+endef
+
+
 define stream_stdout
 	az batchai job file stream -w $(WORKSPACE) -e $(EXPERIMENT) \
 	--j $(1) --output-directory-id stdouterr -f stdout.txt
@@ -158,7 +168,7 @@ delete: delete-cluster
 	az group delete --name ${GROUP_NAME} -y
 
 
-setup: select-subscription create-resource-group create-workspace create-storage set-storage set-az-defaults create-fileshare create-cluster list-clusters
+setup: select-subscription create-resource-group create-workspace create-storage set-storage set-az-defaults create-fileshare create-directory create-cluster list-clusters
 	@echo "Cluster created"
 
 #
@@ -166,7 +176,7 @@ setup: select-subscription create-resource-group create-workspace create-storage
 #
 submit-all: submit-keras-intel32 submit-keras-intel16 submit-keras-intel8 submit-keras-intel4 submit-tf-intel32 \
 submit-tf-intel16 submit-tf-intel8 submit-tf-intel4 submit-pytorch32 submit-pytorch16 submit-pytorch8 submit-pytorch4 \
-submit-keras-local submit-tf-local submit-pytorch-local
+submit-keras-local submit-tf-local submit-pytorch-local submit-pytorch_gloo32 submit-pytorch_gloo16 submit-pytorch_gloo8 submit-pytorch_gloo4
 
 clean-jobs:
 	$(call delete_job, tf-local)
@@ -187,7 +197,13 @@ clean-jobs:
 	$(call delete_job, pytorch-16)
 	$(call delete_job, pytorch-32)
 
+	$(call delete_job, pytorch_gloo-4)
+	$(call delete_job, pytorch_gloo-8)
+	$(call delete_job, pytorch_gloo-16)
+	$(call delete_job, pytorch_gloo-32)
+
 ####### Gather Results ######
+# TODO for PyTorch_Gloo
 
 gather-results:results.json
 	@echo "All results gathered"
