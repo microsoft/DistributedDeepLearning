@@ -121,6 +121,7 @@ upload-scripts: set-storage
 	$(call upload_script, ../../HorovodTF/src/imagenet_estimator_tf_horovod.py)
 	$(call upload_script, ../../HorovodTF/src/resnet_model.py)
 	$(call upload_script, ../../HorovodPytorch/src/imagenet_pytorch_horovod.py)
+	$(call upload_script, ../../Pytorch/src/imagenet_pytorch_gloo.py)
 	$(call upload_script, ../../common/timer.py)
 
 upload-nodeprep-scripts: set-storage
