@@ -11,17 +11,18 @@ https://github.com/Microsoft/CNTK/blob/master/Examples/Image/Classification/ResN
 
 from __future__ import print_function
 import os
-import cntk as C
 import numpy as np
-
+import cntk as C
 from cntk import input, cross_entropy_with_softmax, classification_error, Trainer, cntk_py
 from cntk import data_parallel_distributed_learner, Communicator
 from cntk.learners import momentum_sgd, learning_rate_schedule, momentum_schedule, UnitType
 from cntk.train.training_session import *
 from cntk.debugging import *
 from cntk.logging import *
-from resnet_models import *
 import cntk.io.transforms as xforms
+from resnet_models import *
+from sklearn.preprocessing import OneHotEncoder
+
 import logging
 
 
@@ -103,8 +104,21 @@ def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
         multithreaded_deserializer=True)
 
 
-def create_fake_mb_source():
-    pass
+def create_fake_mb_source(n_examples, dim=(_HEIGHT, _WIDTH),
+                          channels=_CHANNELS, n_classes=_NUMCLASSES, seed=42):
+    # FIXME: If the data doesn't fit in memory it will break, to do a more
+    # optimal function I have to do a custom source:
+    # https://cntk.ai/pythondocs/Manual_How_to_create_user_minibatch_sources.html
+    np.random.seed(seed)
+    x = np.random.rand(n_examples, channels, dim[0], dim[1]).astype(np.float32)
+    y = np.random.choice(n_classes, n_examples)
+    y = np.expand_dims(y, axis=-1)
+    enc = OneHotEncoder(n_values=n_classes, dtype=np.float32,
+                        categorical_features='all')
+    fit = enc.fit(y)
+    y = fit.transform(y).toarray()
+    source = C.io.MinibatchSourceFromData(dict(x=x, y=y))
+    return source
 
 
 def model_fn():
@@ -220,8 +234,11 @@ def main():
 
     logger.info('Creating data sources ...')
     if _FAKE:
-        train_source = create_fake_mb_source()
-        test_source = create_fake_mb_source()
+        train_source = create_fake_mb_source(n_examples=500,  # n_examples=_DATA_LENGTH
+                                             dim=(_HEIGHT, _WIDTH),
+                                             channels=_CHANNELS,
+                                             n_classes=_NUMCLASSES)
+        test_source = None  # create_fake_mb_source()
     else:
         train_source = create_image_mb_source(
             train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_DATA_LENGTH)
