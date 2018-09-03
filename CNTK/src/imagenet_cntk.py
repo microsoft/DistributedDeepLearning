@@ -104,8 +104,7 @@ def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
         multithreaded_deserializer=True)
 
 
-def create_fake_mb_source(n_examples, dim=(_HEIGHT, _WIDTH),
-                          channels=_CHANNELS, n_classes=_NUMCLASSES, seed=42):
+def create_fake_mb_source(n_examples, dim, channels, n_classes, seed=42):
     # FIXME: If the data doesn't fit in memory it will break, to do a more
     # optimal function I have to do a custom source:
     # https://cntk.ai/pythondocs/Manual_How_to_create_user_minibatch_sources.html
