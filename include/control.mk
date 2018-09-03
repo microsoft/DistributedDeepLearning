@@ -169,7 +169,7 @@ delete: delete-cluster
 	az group delete --name ${GROUP_NAME} -y
 
 
-setup: select-subscription create-resource-group create-workspace create-storage set-storage set-az-defaults create-fileshare create-directory create-cluster list-clusters
+setup: select-subscription create-resource-group create-workspace create-storage set-storage set-az-defaults create-fileshare create-directory upload-scripts create-cluster list-clusters create-experiment
 	@echo "Cluster created"
 
 #
