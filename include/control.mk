@@ -212,6 +212,9 @@ gather-results:results.json
 results.json: pytorch_1gpulocal_$(GPU_TYPE)_local.results pytorch_4gpuopen_$(GPU_TYPE)_open.results \
 			  pytorch_8gpuopen_$(GPU_TYPE)_open.results pytorch_16gpuopen_$(GPU_TYPE)_open.results \
 			  pytorch_32gpuopen_$(GPU_TYPE)_open.results \
+			  pytorch_gloo_1gpulocal_$(GPU_TYPE)_local.results pytorch_gloo_4gpuopen_$(GPU_TYPE)_open.results \
+			  pytorch_gloo_8gpuopen_$(GPU_TYPE)_open.results pytorch_gloo_16gpuopen_$(GPU_TYPE)_open.results \
+			  pytorch_gloo_32gpuopen_$(GPU_TYPE)_open.results \
 			  tf_1gpulocal_$(GPU_TYPE)_local.results tf_4gpuintel_$(GPU_TYPE)_intel.results \
 			  tf_8gpuintel_$(GPU_TYPE)_intel.results tf_16gpuintel_$(GPU_TYPE)_intel.results \
 			  tf_32gpuintel_$(GPU_TYPE)_intel.results \
@@ -237,7 +240,20 @@ pytorch_32gpuopen_$(GPU_TYPE)_open.results:
 	$(call stream_stdout, pytorch-32)>pytorch_32gpuopen_$(GPU_TYPE)_open.results
 
 
+pytorch_gloo_1gpulocal_$(GPU_TYPE)_local.results:
+	$(call stream_stdout, pytorch_gloo-local)>pytorch_gloo_1gpulocal_$(GPU_TYPE)_local.results
 
+pytorch_gloo_4gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch_gloo-4)>pytorch_gloo_4gpuopen_$(GPU_TYPE)_open.results
+
+pytorch_gloo_8gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch_gloo-8)>pytorch_gloo_8gpuopen_$(GPU_TYPE)_open.results
+
+pytorch_gloo_16gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch_gloo-16)>pytorch_gloo_16gpuopen_$(GPU_TYPE)_open.results
+
+pytorch_gloo_32gpuopen_$(GPU_TYPE)_open.results:
+	$(call stream_stdout, pytorch_gloo-32)>pytorch_gloo_32gpuopen_$(GPU_TYPE)_open.results
 
 tf_1gpulocal_$(GPU_TYPE)_local.results:
 	$(call stream_stdout, tf-local)>tf_1gpulocal_$(GPU_TYPE)_local.results

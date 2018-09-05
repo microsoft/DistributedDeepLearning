@@ -35,9 +35,12 @@ _WIDTH = 224
 _HEIGHT = 224
 _LR = 0.001
 _EPOCHS = 1
-_BATCHSIZE = 64*4
+_NUM_GPU = int(torch.cuda.device_count())
+_BATCHSIZE = 64*_NUM_GPU
 _RGB_MEAN = [0.485, 0.456, 0.406]
 _RGB_SD = [0.229, 0.224, 0.225]
+
+
 args = parser.parse_args()
 
 def _str_to_bool(in_str):
@@ -51,7 +54,6 @@ _DATA_LENGTH = int(os.getenv('FAKE_DATA_LENGTH', 1281167)) # How much fake data 
 
 #_DISTRIBUTED = _str_to_bool(os.getenv('DISTRIBUTED', 'False'))
 _DISTRIBUTED = True
-#_CPU_COUNT = multiprocessing.cpu_count()
 _CPU_COUNT = 8
 logger.info("Distributed mode: ", _DISTRIBUTED)
 logger.info("CPU Count: ", _CPU_COUNT)
@@ -150,6 +152,17 @@ class FakeData(Dataset):
     def __len__(self):
         return self._length
 
+
+def _log_summary(data_length, duration):
+    #logger = _get_logger()
+    images_per_second = data_length / duration
+    logger.info('Data length:      {}'.format(data_length))
+    logger.info('Total duration:   {:.3f}'.format(duration))
+    logger.info('Total images/sec: {:.3f}'.format(images_per_second))
+    logger.info('Batch size:       (Per GPU {}: Total {})'.format(int(_BATCHSIZE/_NUM_GPU), _BATCHSIZE))
+    logger.info('Distributed:      {}'.format('True' if _DISTRIBUTED else 'False'))
+    logger.info('Num GPUs:         {:.3f}'.format(_NUM_GPU))  # May need to pass in argument to get this
+    logger.info('Dataset:          {}'.format('Synthetic' if _FAKE else 'Imagenet'))
 
 def _create_data(batch_size, num_batches, dim, channels, seed=42):
     np.random.seed(seed)
@@ -255,8 +268,10 @@ def main():
         if _DISTRIBUTED:
             train_sampler.set_epoch(epoch)
         # Train
-        with Timer(output=logger.info, prefix="Training"):
+        with Timer(output=logger.info, prefix="Training") as t:
             train(train_loader, model, criterion, optimizer, epoch)
+            _log_summary(len(train_dataset), t.elapsed)
+        
         # Validate
         #with Timer(output=logger.info, prefix="Testing"):
         #    validate(val_loader, model, criterion)

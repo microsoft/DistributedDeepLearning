@@ -1,0 +1,39 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Azure/BatchAI/master/schemas/2018-05-01/job.json",
+    "properties": {
+        "containerSettings": {
+            "imageSourceRegistry": {
+                "image": "iliauk/pytorch_gloo"
+            }
+        },
+        "inputDirectories": [
+            {
+                "id": "SCRIPTS",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/extfs/scripts"
+            },
+            {
+                "id": "TRAIN",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet"
+            },
+            {
+                "id": "TEST",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet"
+            }
+        ],
+        "nodeCount": 2,
+        "outputDirectories": [
+            {
+                "id": "MODEL",
+                "pathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+                "pathSuffix": "Models"
+            }
+        ],
+        "pyTorchSettings": {
+            "commandLineArgs": "--world-size 2 --dist-backend $AZ_BATCHAI_PYTORCH_BACKEND --dist-url $AZ_BATCHAI_PYTORCH_INIT_METHOD --rank $AZ_BATCHAI_TASK_INDEX",
+            "communicationBackend": "gloo",
+            "pythonScriptFilePath": "$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_pytorch_gloo.py"
+        },
+        "stdOutErrPathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs"
+    }
+}
+
