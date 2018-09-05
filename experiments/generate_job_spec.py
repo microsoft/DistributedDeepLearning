@@ -107,7 +107,7 @@ def append_data_paths(job_template_dict, data_path):
         {
             "id": "TEST",
             "path": data_path,
-        }])
+    }])
     return job_template_dict
 
 
@@ -141,6 +141,50 @@ def generate_job_dict(image_name,
     }
 
 
+def generate_job_dict_cntk(image_name,
+                           command,
+                           node_count=2,
+                           processes_per_node=4):
+    return {
+        "$schema": "https://raw.githubusercontent.com/Azure/BatchAI/master/schemas/2018-03-01/job.json",
+        "properties": {
+            "nodeCount": node_count,
+            "cntkSettings": {
+                "pythonScriptFilePath": "$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_cntk.py",
+                "processCount": processes_per_node
+            },
+            "environmentVariables": [{
+                "name": "DISTRIBUTED",
+                "value": "True"
+            }],
+            "stdOutErrPathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+            "inputDirectories": [{
+                "id": "SCRIPTS",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/extfs/scripts"
+            },
+                {
+                "id": "TRAIN",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/imagenet",
+            },
+                {
+                "id": "TEST",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/imagenet",
+            },
+            ],
+            "outputDirectories": [{
+                "id": "MODEL",
+                "pathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+                "pathSuffix": "Models"
+            }],
+            "containerSettings": {
+                "imageSourceRegistry": {
+                    "image": image_name
+                }
+            }
+        }
+    }
+
+
 def write_json_to_file(json_dict, filename, mode='w'):
     with open(filename, mode) as outfile:
         json.dump(json_dict, outfile, indent=4, sort_keys=True)
@@ -155,8 +199,10 @@ def synthetic_data_job(image_name,
                        total_processes=None,
                        processes_per_node=4,
                        synthetic_length=1281167):
-    logger.info('Creating manifest for job with synthetic data {} with {} image...'.format(filename, image_name))
-    total_processes = processes_per_node * node_count if total_processes is None else total_processes
+    logger.info('Creating manifest for job with synthetic data {} with {} image...'.format(
+        filename, image_name))
+    total_processes = processes_per_node * \
+        node_count if total_processes is None else total_processes
     command = _prepare_command(mpitype,
                                total_processes,
                                processes_per_node,
@@ -164,8 +210,8 @@ def synthetic_data_job(image_name,
                                node_count,
                                synthetic_length=synthetic_length)
     job_template = generate_job_dict(image_name,
-                      command,
-                      node_count=node_count)
+                                     command,
+                                     node_count=node_count)
     write_json_to_file(job_template, filename)
     logger.info('Done')
 
@@ -178,8 +224,10 @@ def imagenet_data_job(image_name,
                       node_count=2,
                       total_processes=None,
                       processes_per_node=4):
-    logger.info('Creating manifest for job with real data {} with {} image...'.format(filename, image_name))
-    total_processes = processes_per_node * node_count if total_processes is None else total_processes
+    logger.info('Creating manifest for job with real data {} with {} image...'.format(
+        filename, image_name))
+    total_processes = processes_per_node * \
+        node_count if total_processes is None else total_processes
     command = _prepare_command(mpitype,
                                total_processes,
                                processes_per_node,
@@ -227,9 +275,9 @@ if __name__ == '__main__':
                            synthetic_length=args.synthetic_length)
     else:
         imagenet_data_job(args.docker_image,
-                           args.mpi,
-                           args.script,
-                           args.data,
-                           filename=args.filename,
-                           node_count=args.node_count,
-                           processes_per_node=args.processes_per_node)
+                          args.mpi,
+                          args.script,
+                          args.data,
+                          filename=args.filename,
+                          node_count=args.node_count,
+                          processes_per_node=args.processes_per_node)
