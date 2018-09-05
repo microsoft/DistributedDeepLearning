@@ -116,7 +116,7 @@ def create_fake_mb_source(n_examples, dim, channels, n_classes, seed=42):
                         categorical_features='all')
     fit = enc.fit(y)
     y = fit.transform(y).toarray()
-    source = C.io.MinibatchSourceFromData(dict(x=x, y=y))
+    source = C.io.MinibatchSourceFromData(dict(features=x, labels=y))
     return source
 
 
