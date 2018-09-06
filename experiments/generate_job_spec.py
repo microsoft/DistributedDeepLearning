@@ -185,7 +185,6 @@ def generate_job_dict_gloo(image_name,
 
 
 def generate_job_dict_cntk(image_name,
-                           command,
                            node_count=2,
                            processes_per_node=4):
     return {
@@ -246,10 +245,14 @@ def synthetic_data_job(image_name,
         filename, image_name))
     total_processes = processes_per_node * \
         node_count if total_processes is None else total_processes
-    if mpitype == "gloo":
+    if mpitype == 'gloo':
         job_template = generate_job_dict_gloo(image_name,
                                               script,
                                               node_count=node_count)
+    elif mpitype == 'cntk':
+        job_template = generate_job_dict_cntk(image_name,
+                                              node_count,
+                                              processes_per_node)
     else:
         command = _prepare_command(mpitype,
                                    total_processes,
