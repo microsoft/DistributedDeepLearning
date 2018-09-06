@@ -89,7 +89,8 @@ def _fake_length_for(mpitype, fake_length, data):
         return ''
 
 
-def _prepare_command(mpitype, total_processes, processes_per_node, script, node_count, data=None, synthetic_length=1281167):
+def _prepare_command(mpitype, total_processes, processes_per_node, script, node_count, data=None,
+                     synthetic_length=1281167):
     command = cmd_choice_dict.get(mpitype, cmd_for_intel)
     return command.format(total_processes=total_processes,
                           processes_per_node=processes_per_node,
@@ -141,6 +142,48 @@ def generate_job_dict(image_name,
     }
 
 
+def generate_job_dict_gloo(image_name,
+                           script,
+                           node_count=2):
+    # Command is hard-coded for time-being
+    # Not sure what world-size is?? Probably node_count but check
+    return {
+        "$schema": "https://raw.githubusercontent.com/Azure/BatchAI/master/schemas/2018-05-01/job.json",
+        "properties": {
+            "pyTorchSettings": {
+                "pythonScriptFilePath": script,
+                "commandLineArgs": "--world-size 2 --dist-backend $AZ_BATCHAI_PYTORCH_BACKEND --dist-url $AZ_BATCHAI_PYTORCH_INIT_METHOD --rank $AZ_BATCHAI_TASK_INDEX",
+                "communicationBackend": "gloo"
+            },
+            "nodeCount": node_count,
+            "stdOutErrPathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+            "inputDirectories": [{
+                "id": "SCRIPTS",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/extfs/scripts"
+            },
+                {
+                    "id": "TRAIN",
+                    "path": "$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet",
+                },
+                {
+                    "id": "TEST",
+                    "path": "$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet",
+                },
+            ],
+            "outputDirectories": [{
+                "id": "MODEL",
+                "pathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+                "pathSuffix": "Models"
+            }],
+            "containerSettings": {
+                "imageSourceRegistry": {
+                    "image": image_name
+                }
+            }
+        }
+    }
+
+
 def write_json_to_file(json_dict, filename, mode='w'):
     with open(filename, mode) as outfile:
         json.dump(json_dict, outfile, indent=4, sort_keys=True)
@@ -157,15 +200,21 @@ def synthetic_data_job(image_name,
                        synthetic_length=1281167):
     logger.info('Creating manifest for job with synthetic data {} with {} image...'.format(filename, image_name))
     total_processes = processes_per_node * node_count if total_processes is None else total_processes
-    command = _prepare_command(mpitype,
-                               total_processes,
-                               processes_per_node,
-                               script,
-                               node_count,
-                               synthetic_length=synthetic_length)
-    job_template = generate_job_dict(image_name,
-                      command,
-                      node_count=node_count)
+    if mpitype == "gloo":
+        job_template = generate_job_dict_gloo(image_name,
+                                              script,
+                                              node_count=node_count)
+    else:
+        command = _prepare_command(mpitype,
+                                   total_processes,
+                                   processes_per_node,
+                                   script,
+                                   node_count,
+                                   synthetic_length=synthetic_length)
+        job_template = generate_job_dict(image_name,
+                                         command,
+                                         node_count=node_count)
+
     write_json_to_file(job_template, filename)
     logger.info('Done')
 
@@ -180,6 +229,7 @@ def imagenet_data_job(image_name,
                       processes_per_node=4):
     logger.info('Creating manifest for job with real data {} with {} image...'.format(filename, image_name))
     total_processes = processes_per_node * node_count if total_processes is None else total_processes
+    # non-synthetic gloo to add
     command = _prepare_command(mpitype,
                                total_processes,
                                processes_per_node,
@@ -227,9 +277,9 @@ if __name__ == '__main__':
                            synthetic_length=args.synthetic_length)
     else:
         imagenet_data_job(args.docker_image,
-                           args.mpi,
-                           args.script,
-                           args.data,
-                           filename=args.filename,
-                           node_count=args.node_count,
-                           processes_per_node=args.processes_per_node)
+                          args.mpi,
+                          args.script,
+                          args.data,
+                          filename=args.filename,
+                          node_count=args.node_count,
+                          processes_per_node=args.processes_per_node)
