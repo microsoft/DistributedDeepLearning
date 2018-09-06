@@ -8,36 +8,36 @@ logger = logging.getLogger(__name__)
 #
 # Config for Intel
 cmd_for_intel = \
-    """source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh; 
-    echo $AZ_BATCH_HOST_LIST; 
-    mpirun -n {total_processes} -ppn {processes_per_node} {hosts} 
-    -env I_MPI_FABRICS=dapl 
-    -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0 
-    -env I_MPI_DYNAMIC_CONNECTION=0 
-    -env I_MPI_DEBUG=6 
-    -env I_MPI_HYDRA_DEBUG=on 
-    -env DISTRIBUTED=True 
-    {fake} 
-    {fake_length} 
+    """source /opt/intel/compilers_and_libraries_2017.4.196/linux/mpi/intel64/bin/mpivars.sh;
+    echo $AZ_BATCH_HOST_LIST;
+    mpirun -n {total_processes} -ppn {processes_per_node} {hosts}
+    -env I_MPI_FABRICS=dapl
+    -env I_MPI_DAPL_PROVIDER=ofa-v2-ib0
+    -env I_MPI_DYNAMIC_CONNECTION=0
+    -env I_MPI_DEBUG=6
+    -env I_MPI_HYDRA_DEBUG=on
+    -env DISTRIBUTED=True
+    {fake}
+    {fake_length}
     python -u {script}""".replace('\n', '')
 
 # Config for OpenMPI
 cmd_for_openmpi = \
-    """echo $AZ_BATCH_HOST_LIST; 
-    cat $AZ_BATCHAI_MPI_HOST_FILE; 
-    mpirun -np {total_processes} {hosts} 
-    -bind-to none -map-by slot 
-    -x NCCL_DEBUG=INFO -x LD_LIBRARY_PATH 
-    -mca btl_tcp_if_include eth0 
-    -x NCCL_SOCKET_IFNAME=eth0 
-    -mca btl ^openib 
-    -x NCCL_IB_DISABLE=1 
-    -x DISTRIBUTED=True 
+    """echo $AZ_BATCH_HOST_LIST;
+    cat $AZ_BATCHAI_MPI_HOST_FILE;
+    mpirun -np {total_processes} {hosts}
+    -bind-to none -map-by slot
+    -x NCCL_DEBUG=INFO -x LD_LIBRARY_PATH
+    -mca btl_tcp_if_include eth0
+    -x NCCL_SOCKET_IFNAME=eth0
+    -mca btl ^openib
+    -x NCCL_IB_DISABLE=1
+    -x DISTRIBUTED=True
     -x AZ_BATCHAI_INPUT_TRAIN
     -x AZ_BATCHAI_INPUT_TEST
-    {fake} 
-    {fake_length} 
-    --allow-run-as-root 
+    {fake}
+    {fake_length}
+    --allow-run-as-root
     python -u {script}""".replace('\n', '')
 
 # Running on single node without mpi
@@ -89,7 +89,8 @@ def _fake_length_for(mpitype, fake_length, data):
         return ''
 
 
-def _prepare_command(mpitype, total_processes, processes_per_node, script, node_count, data=None, synthetic_length=1281167):
+def _prepare_command(mpitype, total_processes, processes_per_node, script, node_count, data=None,
+                     synthetic_length=1281167):
     command = cmd_choice_dict.get(mpitype, cmd_for_intel)
     return command.format(total_processes=total_processes,
                           processes_per_node=processes_per_node,
@@ -125,6 +126,48 @@ def generate_job_dict(image_name,
             "inputDirectories": [{
                 "id": "SCRIPTS",
                 "path": "$AZ_BATCHAI_MOUNT_ROOT/extfs/scripts"
+            },
+            ],
+            "outputDirectories": [{
+                "id": "MODEL",
+                "pathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+                "pathSuffix": "Models"
+            }],
+            "containerSettings": {
+                "imageSourceRegistry": {
+                    "image": image_name
+                }
+            }
+        }
+    }
+
+
+def generate_job_dict_gloo(image_name,
+                           script,
+                           node_count=2):
+    # Command is hard-coded for time-being
+    # Not sure what world-size is?? Probably node_count but check
+    return {
+        "$schema": "https://raw.githubusercontent.com/Azure/BatchAI/master/schemas/2018-05-01/job.json",
+        "properties": {
+            "pyTorchSettings": {
+                "pythonScriptFilePath": script,
+                "commandLineArgs": "--world-size 2 --dist-backend $AZ_BATCHAI_PYTORCH_BACKEND --dist-url $AZ_BATCHAI_PYTORCH_INIT_METHOD --rank $AZ_BATCHAI_TASK_INDEX",
+                "communicationBackend": "gloo"
+            },
+            "nodeCount": node_count,
+            "stdOutErrPathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
+            "inputDirectories": [{
+                "id": "SCRIPTS",
+                "path": "$AZ_BATCHAI_MOUNT_ROOT/extfs/scripts"
+            },
+                {
+                    "id": "TRAIN",
+                    "path": "$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet",
+            },
+                {
+                    "id": "TEST",
+                    "path": "$AZ_BATCHAI_MOUNT_ROOT/nfs/imagenet",
             },
             ],
             "outputDirectories": [{
@@ -203,15 +246,21 @@ def synthetic_data_job(image_name,
         filename, image_name))
     total_processes = processes_per_node * \
         node_count if total_processes is None else total_processes
-    command = _prepare_command(mpitype,
-                               total_processes,
-                               processes_per_node,
-                               script,
-                               node_count,
-                               synthetic_length=synthetic_length)
-    job_template = generate_job_dict(image_name,
-                                     command,
-                                     node_count=node_count)
+    if mpitype == "gloo":
+        job_template = generate_job_dict_gloo(image_name,
+                                              script,
+                                              node_count=node_count)
+    else:
+        command = _prepare_command(mpitype,
+                                   total_processes,
+                                   processes_per_node,
+                                   script,
+                                   node_count,
+                                   synthetic_length=synthetic_length)
+        job_template = generate_job_dict(image_name,
+                                         command,
+                                         node_count=node_count)
+
     write_json_to_file(job_template, filename)
     logger.info('Done')
 
@@ -228,6 +277,7 @@ def imagenet_data_job(image_name,
         filename, image_name))
     total_processes = processes_per_node * \
         node_count if total_processes is None else total_processes
+    # non-synthetic gloo to add
     command = _prepare_command(mpitype,
                                total_processes,
                                processes_per_node,
