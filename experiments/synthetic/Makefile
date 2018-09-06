@@ -77,7 +77,7 @@ create-cluster: upload-nodeprep-scripts
 	--config-file ../../cluster_config/cluster.json
 
 
-submit-all: submit-keras-intel32 submit-keras-intel16 submit-keras-intel8 submit-keras-intel4 \ 
+submit-all: submit-keras-intel32 submit-keras-intel16 submit-keras-intel8 submit-keras-intel4 \
 submit-tf-intel32 submit-tf-intel16 submit-tf-intel8 submit-tf-intel4  \
 submit-pytorch32 submit-pytorch16 submit-pytorch8 submit-pytorch4 \
 submit-pytorch_gloo32 submit-pytorch_gloo16 submit-pytorch_gloo8 submit-pytorch_gloo4 \
@@ -147,7 +147,7 @@ submit-cntk4:
 submit-cntk-local:
 	$(call submit_cntk_local,1,cntk-local)
 
-	
+
 submit-pytorch_gloo32:
 	$(call submit_pytorch_gloo,8,$(PROCESSES_PER_NODE),pytorch_gloo-32)
 
