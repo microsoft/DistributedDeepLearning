@@ -16,6 +16,7 @@ import cntk as C
 from cntk import input, cross_entropy_with_softmax, classification_error, Trainer, cntk_py
 from cntk import data_parallel_distributed_learner, Communicator
 from cntk.learners import momentum_sgd, learning_rate_schedule, momentum_schedule, UnitType
+from cntk.io import UserMinibatchSource, StreamInformation, MinibatchData
 from cntk.train.training_session import *
 from cntk.debugging import *
 from cntk.logging import *
@@ -104,20 +105,65 @@ def create_image_mb_source(map_file, mean_file, train, total_number_of_samples):
         multithreaded_deserializer=True)
 
 
-def create_fake_mb_source(n_examples, dim, channels, n_classes, seed=42):
-    # FIXME: If the data doesn't fit in memory it will break, to do a more
-    # optimal function I have to do a custom source:
-    # https://cntk.ai/pythondocs/Manual_How_to_create_user_minibatch_sources.html
-    np.random.seed(seed)
-    x = np.random.rand(n_examples, channels, dim[0], dim[1]).astype(np.float32)
-    y = np.random.choice(n_classes, n_examples)
-    y = np.expand_dims(y, axis=-1)
-    enc = OneHotEncoder(n_values=n_classes, dtype=np.float32,
-                        categorical_features='all')
-    fit = enc.fit(y)
-    y = fit.transform(y).toarray()
-    source = C.io.MinibatchSourceFromData(dict(features=x, labels=y))
-    return source
+class FakeDataSource(UserMinibatchSource):
+    """Fake data source
+    https://cntk.ai/pythondocs/Manual_How_to_create_user_minibatch_sources.html
+    """
+
+    def __init__(self, total_n_images, dim, channels, n_classes, seed=42):
+        self.dim = dim
+        self.total_n_images = total_n_images
+        self.channels = channels
+        self.n_classes = n_classes
+        self.seed = seed
+        self.fsi = StreamInformation(name='features', stream_id=0, storage_format='dense',
+                                     dtype=np.float32, shape=(self.channels, self.dim[0], self.dim[0],))
+        self.lsi = StreamInformation(
+            name='labels', stream_id=1, storage_format='dense', dtype=np.float32, shape=(self.n_classes,))
+        self.sample_count = 0
+        self.next_seq_idx = 0
+        super(FakeDataSource, self).__init__()
+
+    def stream_infos(self):
+        """
+        Override the stream_infos method of the base UserMinibatchSource class
+        to provide stream meta information.
+        """
+        return [self.fsi, self.lsi]
+
+    def next_minibatch(self, num_samples, number_of_workers=1, worker_rank=0, device=None):
+        """
+        Override the next_minibatch method of the base UserMinibatchSource class
+        to provide minibatch data.
+        """
+        np.random.seed(self.seed)
+        x = np.random.rand(num_samples, self.channels,
+                           self.dim[0], self.dim[1]).astype(np.float32)
+        y = np.random.choice(self.n_classes, num_samples)
+        y = np.expand_dims(y, axis=-1)
+        enc = OneHotEncoder(n_values=self.n_classes, dtype=np.float32,
+                            categorical_features='all')
+        fit = enc.fit(y)
+        y = fit.transform(y).toarray()
+        if self.sample_count + num_samples <= self.total_n_images:
+            self.sample_count += num_samples
+            self.next_seq_idx += num_samples
+            feature_data = C.Value(batch=x, device=device)
+            label_data = C.Value(batch=y, device=device)
+            res = {
+                self.fsi: MinibatchData(feature_data, num_samples, num_samples, False),
+                self.lsi: MinibatchData(label_data, num_samples, num_samples, False)
+            }
+        else:
+            res = {}
+
+        return res
+
+    def get_checkpoint_state(self):
+        return {'next_seq_idx': self.next_seq_idx}
+
+    def restore_from_checkpoint(self, state):
+        self.next_seq_idx = state['next_seq_idx']
 
 
 def model_fn():
@@ -233,10 +279,10 @@ def main():
 
     logger.info('Creating data sources ...')
     if _FAKE:
-        train_source = create_fake_mb_source(n_examples=500,  # n_examples=_DATA_LENGTH
-                                             dim=(_HEIGHT, _WIDTH),
-                                             channels=_CHANNELS,
-                                             n_classes=_NUMCLASSES)
+        train_source = FakeDataSource(total_n_images=_DATA_LENGTH,
+                                      dim=(_HEIGHT, _WIDTH),
+                                      channels=_CHANNELS,
+                                      n_classes=_NUMCLASSES)
         test_source = None  # create_fake_mb_source()
     else:
         train_source = create_image_mb_source(
