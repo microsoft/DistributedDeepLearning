@@ -252,13 +252,6 @@ def train_and_test(network, trainer, train_source, test_source, minibatch_size,
 
 def main():
     model_path = os.getenv('AZ_BATCHAI_OUTPUT_MODEL')
-    data_path = os.getenv('AZ_BATCHAI_INPUT_TRAIN')
-    logger.info("model_path: {}".format(model_path))
-    logger.info("data_path: {}".format(data_path))
-
-    mean_data = os.path.join(data_path, 'ImageNet1K_mean.xml')
-    train_data = os.path.join(data_path, 'train_map.txt')
-    test_data = os.path.join(data_path, 'val_map.txt')
 
     if _DISTRIBUTED:
         minibatch_size = _BATCHSIZE * Communicator.num_workers()
@@ -283,8 +276,15 @@ def main():
                                       dim=(_HEIGHT, _WIDTH),
                                       channels=_CHANNELS,
                                       n_classes=_NUMCLASSES)
-        test_source = None  # create_fake_mb_source()
+        test_source = None
     else:
+        data_path = os.getenv('AZ_BATCHAI_INPUT_TRAIN')
+        logger.info("model_path: {}".format(model_path))
+        logger.info("data_path: {}".format(data_path))
+
+        mean_data = os.path.join(data_path, 'ImageNet1K_mean.xml')
+        train_data = os.path.join(data_path, 'train_map.txt')
+        test_data = os.path.join(data_path, 'val_map.txt')
         train_source = create_image_mb_source(
             train_data, mean_data, train=True, total_number_of_samples=_EPOCHS*_DATA_LENGTH)
         test_source = create_image_mb_source(
