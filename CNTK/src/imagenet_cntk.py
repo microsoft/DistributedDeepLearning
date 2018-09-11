@@ -272,12 +272,15 @@ def main():
 
     logger.info('Creating data sources ...')
     if _FAKE:
+        logger.info("Using {} images of fake data".format(_DATA_LENGTH))
         train_source = FakeDataSource(total_n_images=_DATA_LENGTH,
                                       dim=(_HEIGHT, _WIDTH),
                                       channels=_CHANNELS,
                                       n_classes=_NUMCLASSES)
         test_source = None
     else:
+        logging.info(
+            "Using ImageNet dataset with {} images".format(_DATA_LENGTH))
         data_path = os.getenv('AZ_BATCHAI_INPUT_TRAIN')
         logger.info("model_path: {}".format(model_path))
         logger.info("data_path: {}".format(data_path))
