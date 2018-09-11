@@ -121,6 +121,8 @@ upload-scripts: set-storage
 	$(call upload_script, ../../HorovodTF/src/imagenet_estimator_tf_horovod.py)
 	$(call upload_script, ../../HorovodTF/src/resnet_model.py)
 	$(call upload_script, ../../HorovodPytorch/src/imagenet_pytorch_horovod.py)
+	$(call upload_script, ../../CNTK/src/imagenet_cntk.py)
+	$(call upload_script, ../../CNTK/src/resnet_models.py)
 	$(call upload_script, ../../Pytorch/src/imagenet_pytorch_gloo.py)
 	$(call upload_script, ../../common/timer.py)
 
@@ -175,9 +177,12 @@ setup: select-subscription create-resource-group create-workspace create-storage
 #
 ####### Submit Jobs ######
 #
-submit-all: submit-keras-intel32 submit-keras-intel16 submit-keras-intel8 submit-keras-intel4 submit-tf-intel32 \
-submit-tf-intel16 submit-tf-intel8 submit-tf-intel4 submit-pytorch32 submit-pytorch16 submit-pytorch8 submit-pytorch4 \
-submit-keras-local submit-tf-local submit-pytorch-local submit-pytorch_gloo32 submit-pytorch_gloo16 submit-pytorch_gloo8 submit-pytorch_gloo4
+submit-all: submit-keras-intel32 submit-keras-intel16 submit-keras-intel8 submit-keras-intel4 \
+submit-tf-intel32 submit-tf-intel16 submit-tf-intel8 submit-tf-intel4 \
+submit-pytorch32 submit-pytorch16 submit-pytorch8 submit-pytorch4 \
+submit-pytorch_gloo32 submit-pytorch_gloo16 submit-pytorch_gloo8 submit-pytorch_gloo4 \
+submit-cntk32 submit-cntk16 submit-cntk8 submit-cntk4 \
+submit-keras-local submit-tf-local submit-pytorch-local submit_cntk_local
 
 clean-jobs:
 	$(call delete_job, tf-local)
@@ -203,6 +208,12 @@ clean-jobs:
 	$(call delete_job, pytorch_gloo-16)
 	$(call delete_job, pytorch_gloo-32)
 
+	$(call delete_job, cntk-local)
+	$(call delete_job, cntk-4)
+	$(call delete_job, cntk-8)
+	$(call delete_job, cntk-16)
+	$(call delete_job, cntk-32)
+
 ####### Gather Results ######
 # TODO for PyTorch_Gloo
 
@@ -220,7 +231,10 @@ results.json: pytorch_1gpulocal_$(GPU_TYPE)_local.results pytorch_4gpuopen_$(GPU
 			  tf_32gpuintel_$(GPU_TYPE)_intel.results \
 			  keras_1gpulocal_$(GPU_TYPE)_local.results keras_4gpuintel_$(GPU_TYPE)_intel.results \
 			  keras_8gpuintel_$(GPU_TYPE)_intel.results keras_16gpuintel_$(GPU_TYPE)_intel.results \
-			  keras_32gpuintel_$(GPU_TYPE)_intel.results 
+			  keras_32gpuintel_$(GPU_TYPE)_intel.results \
+			  cntk_1gpulocal_$(GPU_TYPE)_local.results cntk_4gpuintel_$(GPU_TYPE)_intel.results \
+			  cntk_8gpuintel_$(GPU_TYPE)_intel.results cntk_16gpuintel_$(GPU_TYPE)_intel.results \
+			  cntk_32gpuintel_$(GPU_TYPE)_intel.results 
 	python ../parse_results.py
 	
 
@@ -286,6 +300,23 @@ keras_16gpuintel_$(GPU_TYPE)_intel.results:
 
 keras_32gpuintel_$(GPU_TYPE)_intel.results:
 	$(call stream_stdout, keras-intel-32)>keras_32gpuintel_$(GPU_TYPE)_intel.results
+	
+
+
+cntk_1gpulocal_$(GPU_TYPE)_local.results:
+	$(call stream_stdout, cntk-local)>cntk_1gpulocal_$(GPU_TYPE)_local.results
+
+cntk_4gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, cntk-intel-4)>cntk_4gpuintel_$(GPU_TYPE)_intel.results
+
+cntk_8gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, cntk-intel-8)>cntk_8gpuintel_$(GPU_TYPE)_intel.results
+
+cntk_16gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, cntk-intel-16)>cntk_16gpuintel_$(GPU_TYPE)_intel.results
+
+cntk_32gpuintel_$(GPU_TYPE)_intel.results:
+	$(call stream_stdout, cntk-intel-32)>cntk_32gpuintel_$(GPU_TYPE)_intel.results
 	
 
 clean-results:
