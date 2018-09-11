@@ -21,7 +21,7 @@ from cntk.train.training_session import *
 from cntk.debugging import *
 from cntk.logging import *
 import cntk.io.transforms as xforms
-from resnet_models import *
+from resnet_models import create_imagenet_model_bottleneck
 from sklearn.preprocessing import OneHotEncoder
 
 import logging
@@ -43,7 +43,7 @@ _HEIGHT = 224
 _CHANNELS = 3
 _LR = 0.001
 _EPOCHS = os.getenv('EPOCHS', 1)
-_BATCHSIZE = 64
+_BATCHSIZE = 32
 _MOMENTUM = 0.9
 _NUMCLASSES = 1000
 _MODELNAME = 'ResNet_ImageNet.model'
@@ -293,7 +293,7 @@ def main():
         test_source = create_image_mb_source(
             test_data, mean_data, train=False, total_number_of_samples=C.io.FULL_DATA_SWEEP)
 
-    logger.info('Training...')
+    logger.info("Training with minibatch size of {}".format(minibatch_size))
     train_and_test(network, trainer, train_source, test_source,
                    minibatch_size, _DATA_LENGTH, model_path)
 
