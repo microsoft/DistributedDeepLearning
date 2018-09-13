@@ -52,22 +52,24 @@ endef
 
 
 define generate_job_gloo
- python ../generate_job_spec.py $(1) gloo \
+ python ../generate_job_spec.py $(1) openmpi \
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
  	--ppn $(4) \
- 	$(5)
+ 	$(5) \
+	--framework gloo
 endef
 
 
 define generate_job_cntk
- python ../generate_job_spec.py $(1) cntk \
+ python ../generate_job_spec.py $(1) openmpi \
  	$(2) \
  	--filename job.json \
  	--node_count $(3) \
  	--ppn $(4) \
- 	$(5)
+ 	$(5) \
+	--framework cntk
 endef
 
 
