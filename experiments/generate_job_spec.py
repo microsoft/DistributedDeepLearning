@@ -283,7 +283,7 @@ def imagenet_data_job(image_name,
                       processes_per_node=4):
     logger.info('Creating manifest for job with real data {} with {} image...'.format(
         filename, image_name))
-    total_processes = processes_per_node *
+    total_processes = processes_per_node * \
         node_count if total_processes is None else total_processes
     # non-synthetic gloo to add
     command = _prepare_command(mpitype,
