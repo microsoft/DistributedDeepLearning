@@ -51,7 +51,7 @@ define submit_pytorch_gloo
 endef
 
 define submit_cntk
-	$(call generate_job_openmpi,hoaphumanoid/cntk:distributed,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_cntk.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
+	$(call generate_job_cntk,hoaphumanoid/cntk:distributed-openmpi3,\$$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_cntk.py,$(1),$(2), --synthetic_length ${FAKE_DATA_LENGTH})
 	$(call submit_job, $(3))
 endef
 

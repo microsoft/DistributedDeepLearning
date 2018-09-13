@@ -61,6 +61,16 @@ define generate_job_gloo
 endef
 
 
+define generate_job_cntk
+ python ../generate_job_spec.py $(1) cntk \
+ 	$(2) \
+ 	--filename job.json \
+ 	--node_count $(3) \
+ 	--ppn $(4) \
+ 	$(5)
+endef
+
+
 define stream_stdout
 	az batchai job file stream -w $(WORKSPACE) -e $(EXPERIMENT) \
 	--j $(1) --output-directory-id stdouterr -f stdout.txt
