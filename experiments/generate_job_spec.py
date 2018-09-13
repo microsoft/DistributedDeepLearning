@@ -329,7 +329,8 @@ if __name__ == '__main__':
                            filename=args.filename,
                            node_count=args.node_count,
                            processes_per_node=args.processes_per_node,
-                           synthetic_length=args.synthetic_length)
+                           synthetic_length=args.synthetic_length,
+                           framework=args.framework)
     else:
         imagenet_data_job(args.docker_image,
                           args.mpi,
