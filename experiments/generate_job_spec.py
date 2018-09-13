@@ -194,7 +194,6 @@ def generate_job_dict_cntk(image_name,
             "nodeCount": node_count,
             "cntkSettings": {
                 "pythonScriptFilePath": "$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_cntk.py",
-                "commandLineArgs": command_arguments,
                 "processCount": processes_per_node
             },
             "environmentVariables": env_var,
