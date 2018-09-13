@@ -243,7 +243,7 @@ def synthetic_data_job(image_name,
                        framework='horovod'):
     logger.info('Creating manifest for job with synthetic data {} with {} image...'.format(
         filename, image_name))
-    total_processes = processes_per_node *
+    total_processes = processes_per_node * \
         node_count if total_processes is None else total_processes
     if framework == 'gloo':
         job_template = generate_job_dict_gloo(image_name,
