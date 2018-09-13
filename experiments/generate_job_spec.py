@@ -186,19 +186,18 @@ def generate_job_dict_gloo(image_name,
 
 def generate_job_dict_cntk(image_name,
                            node_count=2,
-                           processes_per_node=4):
+                           processes_per_node=4,
+                           env_var=[]):
     return {
         "$schema": "https://raw.githubusercontent.com/Azure/BatchAI/master/schemas/2018-03-01/job.json",
         "properties": {
             "nodeCount": node_count,
             "cntkSettings": {
                 "pythonScriptFilePath": "$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_cntk.py",
+                "commandLineArgs": command_arguments,
                 "processCount": processes_per_node
             },
-            "environmentVariables": [{
-                "name": "DISTRIBUTED",
-                "value": "True"
-            }],
+            "environmentVariables": env_var,
             "stdOutErrPathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
             "inputDirectories": [{
                 "id": "SCRIPTS",
@@ -244,16 +243,20 @@ def synthetic_data_job(image_name,
                        framework='horovod'):
     logger.info('Creating manifest for job with synthetic data {} with {} image...'.format(
         filename, image_name))
-    total_processes = processes_per_node * \
+    total_processes = processes_per_node *
         node_count if total_processes is None else total_processes
     if framework == 'gloo':
         job_template = generate_job_dict_gloo(image_name,
                                               script,
                                               node_count=node_count)
     elif framework == 'cntk':
+        env_var = [{"name": "DISTRIBUTED", "value": "True"},
+                   {"name": "FAKE", "value": "True"},
+                   {"name": "FAKE_DATA_LENGTH", "value": str(synthetic_length)}]
         job_template = generate_job_dict_cntk(image_name,
                                               node_count,
-                                              processes_per_node)
+                                              processes_per_node,
+                                              env_var)
     elif framework == 'horovod':
         command = _prepare_command(mpitype,
                                    total_processes,
@@ -280,7 +283,7 @@ def imagenet_data_job(image_name,
                       processes_per_node=4):
     logger.info('Creating manifest for job with real data {} with {} image...'.format(
         filename, image_name))
-    total_processes = processes_per_node * \
+    total_processes = processes_per_node *
         node_count if total_processes is None else total_processes
     # non-synthetic gloo to add
     command = _prepare_command(mpitype,
