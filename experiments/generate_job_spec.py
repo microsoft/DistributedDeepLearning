@@ -186,7 +186,8 @@ def generate_job_dict_gloo(image_name,
 
 def generate_job_dict_cntk(image_name,
                            node_count=2,
-                           processes_per_node=4):
+                           processes_per_node=4,
+                           env_var=[]):
     return {
         "$schema": "https://raw.githubusercontent.com/Azure/BatchAI/master/schemas/2018-03-01/job.json",
         "properties": {
@@ -195,10 +196,7 @@ def generate_job_dict_cntk(image_name,
                 "pythonScriptFilePath": "$AZ_BATCHAI_INPUT_SCRIPTS/imagenet_cntk.py",
                 "processCount": processes_per_node
             },
-            "environmentVariables": [{
-                "name": "DISTRIBUTED",
-                "value": "True"
-            }],
+            "environmentVariables": env_var,
             "stdOutErrPathPrefix": "$AZ_BATCHAI_MOUNT_ROOT/extfs",
             "inputDirectories": [{
                 "id": "SCRIPTS",
@@ -240,20 +238,25 @@ def synthetic_data_job(image_name,
                        node_count=2,
                        total_processes=None,
                        processes_per_node=4,
-                       synthetic_length=1281167):
+                       synthetic_length=1281167,
+                       framework='horovod'):
     logger.info('Creating manifest for job with synthetic data {} with {} image...'.format(
         filename, image_name))
     total_processes = processes_per_node * \
         node_count if total_processes is None else total_processes
-    if mpitype == 'gloo':
+    if framework == 'gloo':
         job_template = generate_job_dict_gloo(image_name,
                                               script,
                                               node_count=node_count)
-    elif mpitype == 'cntk':
+    elif framework == 'cntk':
+        env_var = [{"name": "DISTRIBUTED", "value": "True"},
+                   {"name": "FAKE", "value": "True"},
+                   {"name": "FAKE_DATA_LENGTH", "value": str(synthetic_length)}]
         job_template = generate_job_dict_cntk(image_name,
                                               node_count,
-                                              processes_per_node)
-    else:
+                                              processes_per_node,
+                                              env_var)
+    elif framework == 'horovod':
         command = _prepare_command(mpitype,
                                    total_processes,
                                    processes_per_node,
@@ -263,7 +266,8 @@ def synthetic_data_job(image_name,
         job_template = generate_job_dict(image_name,
                                          command,
                                          node_count=node_count)
-
+    else:
+        raise ValueError("Wrong framework argument {}".format(framework))
     write_json_to_file(job_template, filename)
     logger.info('Done')
 
@@ -317,6 +321,8 @@ if __name__ == '__main__':
     parser.add_argument('--synthetic_length', '-l', dest='synthetic_length', type=str, nargs='?',
                         default=1281167,
                         help='the length of the fake data [default=size of imagenet 1281167]')
+    parser.add_argument('--framework', '-fw', type=str, nargs='?', default='horovod',
+                        help='the framework used to generate the configuration, options:[horovod, gloo, cntk]')
     args = parser.parse_args()
     if args.data is None:
         synthetic_data_job(args.docker_image,
@@ -325,7 +331,8 @@ if __name__ == '__main__':
                            filename=args.filename,
                            node_count=args.node_count,
                            processes_per_node=args.processes_per_node,
-                           synthetic_length=args.synthetic_length)
+                           synthetic_length=args.synthetic_length,
+                           framework=args.framework)
     else:
         imagenet_data_job(args.docker_image,
                           args.mpi,
