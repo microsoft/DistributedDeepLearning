@@ -1,0 +1,36 @@
+{
+  "_project_short_description": "A set of templates for running distributed training on AML",
+  "project_title": "Template for Distributed Deep Learning using Azure Machine Learning ",
+  "project_name": "aml_dist",
+  "resource_group": "amldistrg",
+  "workspace": "workspace",
+  "subscription_id": "",
+  "vm_size": [
+    "Standard_NC24r",
+    "Standard_NC24rs_v2",
+    "Standard_NC24rs_v3",
+    "Standard_ND24rs"
+  ],
+  "minimum_number_nodes": 2,
+  "maximum_number_nodes": 2,
+  "cluster_name":"gpucluster",
+  "container_registry": "dockerhub",
+  "type": [
+    "all",
+    "template",
+    "benchmark",
+    "imagenet"
+  ],
+  "region": [
+    "eastus",
+    "southcentralus"
+  ],
+  "experiment_name": "experiment",
+  "data":"/mnt/imagenet",
+  "image_name":"aml_dist",
+  "_remove_unused_projects": false,
+  "account_name": "distpremstorage",
+  "account_key": "",
+  "datastore_name":"datastore",
+  "container_name":"container"
+}

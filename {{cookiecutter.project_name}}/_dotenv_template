@@ -1,0 +1,15 @@
+CLUSTER_NAME={{cookiecutter.cluster_name}}
+CLUSTER_VM_SIZE={{cookiecutter.vm_size}}
+CLUSTER_MIN_NODES={{cookiecutter.minimum_number_nodes}}
+CLUSTER_MAX_NODES={{cookiecutter.maximum_number_nodes}}
+WORKSPACE={{cookiecutter.workspace}}
+RESOURCE_GROUP={{cookiecutter.resource_group}}
+REGION={{cookiecutter.region}}
+LOG_CONFIG=/workspace/control/src/logging.conf
+SUBSCRIPTION_ID={{cookiecutter.subscription_id}}
+DATASTORE_NAME={{cookiecutter.datastore_name}}
+CONTAINER_NAME={{cookiecutter.container_name}}
+ACCOUNT_NAME={{cookiecutter.account_name}}
+ACCOUNT_KEY={{cookiecutter.account_key}}
+DATA={{cookiecutter.data}}
+IMAGE_NAME={{cookiecutter.container_registry}}/{{cookiecutter.image_name}}

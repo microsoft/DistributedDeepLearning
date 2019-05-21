@@ -1,0 +1,4 @@
+azure
+azure-cli-core
+azureml-sdk[notebooks,contrib,tensorboard]
+git+https://github.com/msalvaris/amltoolz.git

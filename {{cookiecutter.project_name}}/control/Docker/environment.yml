@@ -1,0 +1,29 @@
+name: py36
+channels:
+ - conda-forge
+dependencies:
+  - python=3.6
+  - jupyter
+  - ipykernel
+  - matplotlib
+  - seaborn
+  - numpy
+  - pandas
+  - selenium
+  - phantomjs
+  - pillow
+  - bokeh
+  - ipython
+  - ipdb
+  - pip:
+    - docker
+    - fire
+    - toolz
+    - tabulate==0.8.2
+    - Jinja2
+    - gitpython
+    - tensorflow # Installing for Tensorboard
+    - tensorboard
+    - tqdm
+    - python-dotenv[cli]==0.10.1
+    - invoke
