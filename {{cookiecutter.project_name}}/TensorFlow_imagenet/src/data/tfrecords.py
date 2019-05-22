@@ -136,7 +136,7 @@ def input_fn(
     if is_training:
         # Shuffle the input files
         if distributed:
-            dataset = dataset.shard(hvd.size(), hvd.local_rank())
+            dataset = dataset.shard(hvd.size(), hvd.rank())
 
         dataset = dataset.shuffle(buffer_size=file_shuffle_buffer)  # _NUM_TRAIN_FILES
 

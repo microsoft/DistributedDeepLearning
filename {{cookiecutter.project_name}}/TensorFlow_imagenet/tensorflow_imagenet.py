@@ -100,7 +100,7 @@ def submit_images_local(c, epochs=1):
             "--data-format": "channels_first",
         },
         dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
-        docker_args=["-v", f"{env_values['data']}:/data"],
+        docker_args=["-v", f"{env_values['DATA']}:/data"],
         wait_for_completion=True,
     )
     print(run)
@@ -155,7 +155,7 @@ def submit_tfrecords_local(c, epochs=1):
             "--data-format": "channels_first",
         },
         dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
-        docker_args=["-v", f"{env_values['data']}:/data"],
+        docker_args=["-v", f"{env_values['DATA']}:/data"],
         wait_for_completion=True,
     )
     print(run)
