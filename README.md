@@ -1,14 +1,13 @@
 # Introduction 
-This repo contains a cookiecutter template for running distributed training of deep learning models using 
-Azure Machine Learning. You can create clusters with 0 nodes which will incur no cost and scale this up to hundreds of nodes. It is also possible to use low priority nodes to reduce costs even further.
+This repo contains a cookiecutter template for running distributed training of deep learning models using Azure Machine Learning. You can create clusters with 0 nodes which will incur no cost and scale this up to hundreds of nodes. It is also possible to use low priority nodes to reduce costs even further.
 
 The project contains the following:  
 #### Tensorflow Benchmark 
 This is a demo template that allows you to easily run [tf_cnn_benchmarks](https://github.com/tensorflow/benchmarks/tree/master/scripts/tf_cnn_benchmarks) on Azure ML. This is a great way to test performance as well as compare to other platforms  
 #### Tensorflow Imagenet 
-This is another demo tempalte that shows you how to train a ResNet50 model using Imagenet on Azure. We include scripts for processing the imagenet data, transforming them to TF Records as well as leveraging AzCopy to quickly upload the data to the cloud.   
+This is another demo template that shows you how to train a ResNet50 model using Imagenet on Azure. We include scripts for processing the Imagenet data, transforming them to TF Records as well as leveraging AzCopy to quickly upload the data to the cloud.   
 #### Tensorflow Template 
-This is a blank template you can use for your own didstributed training projects. It allows you to leverage all the tooling built around the previous two demos to speed up the time it takes to run your model in a distributed fashion on Azure.  
+This is a blank template you can use for your own distributed training projects. It allows you to leverage all the tooling built around the previous two demos to speed up the time it takes to run your model in a distributed fashion on Azure.  
 
 
 # Prerequisites
@@ -73,7 +72,7 @@ Distributed training is complex and often has a number of moving parts. To reduc
 ```bash
 make build
 ```
-This will build your docker container. Isnide your docker container will be an appropriately set up conda environment a number of utilities such as AzCopy as well as everything you will need to run your distributed training job. 
+This will build your docker container. Inside your docker container will be an appropriately set up conda environment a number of utilities such as AzCopy as well as everything you will need to run your distributed training job. 
 Once your container is built run:
 ```bash
 make run
@@ -84,12 +83,12 @@ This will put you in an environment inside your container in a tmux session (for
 If you have selected **all** or **imagenet** in the type question during cookiecutter invocation then you will need to have **ILSVRC2012_img_train.tar** and **ILSVRC2012_img_val.tar** present in the direcotry you specified as your data directory. Go to the [download page](http://www.image-net.org/download-images) (you may need to register an account), and find the page for ILSVRC2012. You will need to download the two files mentioned earlier.
 
 ## Template selection
-Based on the option you selected for **type** during the cookiecutter invocation you will get all or one of the options below. Cookiecutter will create your project folder which will contain the tempalte folders. When inside your project folder make sure you have run the **make build** and **make run** commands as mentioned in section X above. Once you run the run command you will be greeted by a prompt, this is now your control plane. First you will need to set everything up. To do this run
+Based on the option you selected for **type** during the cookiecutter invocation you will get all or one of the options below. Cookiecutter will create your project folder which will contain the template folders. When inside your project folder make sure you have run the **make build** and **make run** commands as mentioned in section X above. Once you run the run command you will be greeted by a prompt, this is now your control plane. First you will need to set everything up. To do this run
 ```bash
 inv setup 
 ```
 It will ask you to log in so follow the prompts in the terminal. If you selected **all** in the template type it will also prepare the imagenet data.
-Now you will be ready to run the tempaltes.
+Now you will be ready to run the templates.
 
 #### Tensorflow Benchmark
 This is a demo template allows you to easily run tf_cnn_benchmarks on Azure ML. This is a great way to test performance as well as compare to other platforms. To use this you must either select benchmark or all when invoking cookiecutter. 
