@@ -109,3 +109,5 @@ venv.bak/
 .vscode/settings.json
 
 .dev_env
+
+.azureml
