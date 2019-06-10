@@ -95,7 +95,7 @@ This will put you in an environment inside your container in a tmux session (for
 If you have selected **all** or **imagenet** in the type question during cookiecutter invocation then you will need to have **ILSVRC2012_img_train.tar** and **ILSVRC2012_img_val.tar** present in the direcotry you specified as your data directory. Go to the [download page](http://www.image-net.org/download-images) (you may need to register an account), and find the page for ILSVRC2012. You will need to download the two files mentioned earlier.
 
 ## Template selection
-Based on the option you selected for **type** during the cookiecutter invocation you will get all or one of the options below. Cookiecutter will create your project folder which will contain the tempalte folders. When inside your project folder make sure you have run the **make build** and **make run** commands as mentioned in section X above. Once you run the run command you will be greeted by a prompt, this is now your control plane. First you will need to set everything up. To do this run
+Based on the option you selected for **type** during the cookiecutter invocation you will get all or one of the options below. Cookiecutter will create your project folder which will contain the tempalte folders. When inside your project folder make sure you have run the **make build** and **make run** commands as mentioned in _building environment_ section above. Once you run the run command you will be greeted by a prompt, this is now your control plane. First you will need to set everything up. To do this run
 ```bash
 inv setup 
 ```
