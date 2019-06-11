@@ -31,7 +31,7 @@ def submit_local(c):
 
 
 @task
-def submit_remote(c):
+def submit_remote(c, node_count=int(env_values["CLUSTER_MAX_NODES"])):
     """This command isn't implemented please modify to use.
 
     The call below will work for submitting jobs to execute on a remote cluster using GPUs.
@@ -45,7 +45,7 @@ def submit_remote(c):
         os.path.join(_BASE_PATH, "src"),
         "<YOUR-TRAINING-SCRIPT>",
         {"YOUR": "ARGS"},
-        node_count=4,
+        node_count=node_count,
         dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
@@ -53,7 +53,7 @@ def submit_remote(c):
 
 
 @task
-def submit_images(c):
+def submit_images_remote(c, node_count=int(env_values["CLUSTER_MAX_NODES"])):
     """This command isn't implemented please modify to use.
 
     The call below will work for submitting jobs to execute on a remote cluster using GPUs.
@@ -76,7 +76,7 @@ def submit_images(c):
             "--data_type": "images",
             "--data-format": "channels_first",
         },
-        node_count=4,
+        node_count=node_count,
         dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
@@ -115,7 +115,7 @@ def submit_images_local(c):
 
 
 remote_collection = Collection("remote")
-remote_collection.add_task(submit_images, "images")
+remote_collection.add_task(submit_images_remote, "images")
 remote_collection.add_task(submit_remote, "synthetic")
 
 local_collection = Collection("local")
