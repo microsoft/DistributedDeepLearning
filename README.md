@@ -1,14 +1,13 @@
 # Introduction 
-This repo contains a cookiecutter template for running distributed training of deep learning models using 
-Azure Machine Learning. You can create clusters with 0 nodes which will incur no cost and scale this up to hundreds of nodes. It is also possible to use low priority nodes to reduce costs even further.
+This repo contains a cookiecutter template for running distributed training of deep learning models using Azure Machine Learning. You can create clusters with 0 nodes which will incur no cost and scale this up to hundreds of nodes. It is also possible to use low priority nodes to reduce costs even further.
 
 The project contains the following:  
 #### Tensorflow Benchmark 
 This is a demo template that allows you to easily run [tf_cnn_benchmarks](https://github.com/tensorflow/benchmarks/tree/master/scripts/tf_cnn_benchmarks) on Azure ML. This is a great way to test performance as well as compare to other platforms  
 #### Tensorflow Imagenet 
-This is another demo tempalte that shows you how to train a ResNet50 model using Imagenet on Azure. We include scripts for processing the imagenet data, transforming them to TF Records as well as leveraging AzCopy to quickly upload the data to the cloud.   
+This is another demo template that shows you how to train a ResNet50 model using Imagenet on Azure. We include scripts for processing the Imagenet data, transforming them to TF Records as well as leveraging AzCopy to quickly upload the data to the cloud.   
 #### Tensorflow Template 
-This is a blank template you can use for your own didstributed training projects. It allows you to leverage all the tooling built around the previous two demos to speed up the time it takes to run your model in a distributed fashion on Azure.  
+This is a blank template you can use for your own distributed training projects. It allows you to leverage all the tooling built around the previous two demos to speed up the time it takes to run your model in a distributed fashion on Azure.  
 
 
 # Prerequisites
@@ -84,7 +83,7 @@ Distributed training is complex and often has a number of moving parts. To reduc
 ```bash
 make build
 ```
-This will build your docker container. Isnide your docker container will be an appropriately set up conda environment a number of utilities such as AzCopy as well as everything you will need to run your distributed training job. 
+This will build your docker container. Inside your docker container will be an appropriately set up conda environment a number of utilities such as AzCopy as well as everything you will need to run your distributed training job. 
 Once your container is built run:
 ```bash
 make run
@@ -100,7 +99,7 @@ Based on the option you selected for **type** during the cookiecutter invocation
 inv setup 
 ```
 It will ask you to log in so follow the prompts in the terminal. If you selected **all** in the template type it will also prepare the imagenet data.
-Now you will be ready to run the tempaltes.
+Now you will be ready to run the templates.
 
 #### Tensorflow Benchmark
 This is a demo template allows you to easily run tf_cnn_benchmarks on Azure ML. This is a great way to test performance as well as compare to other platforms. To use this you must either select benchmark or all when invoking cookiecutter. 
