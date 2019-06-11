@@ -25,7 +25,7 @@ def submit_synthetic(c, node_count=int(env_values["CLUSTER_MAX_NODES"]), epochs=
         "resnet_main.py",
         {"--epochs": epochs},
         node_count=node_count,
-        dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
@@ -45,7 +45,7 @@ def submit_synthetic_local(c, epochs=1):
         os.path.join(_BASE_PATH, "src"),
         "resnet_main.py",
         {"--epochs": epochs},
-        dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
@@ -73,7 +73,7 @@ def submit_images(c, node_count=int(env_values["CLUSTER_MAX_NODES"]), epochs=1):
             "--data-format": "channels_first",
         },
         node_count=node_count,
-        dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
@@ -99,7 +99,7 @@ def submit_images_local(c, epochs=1):
             "--data_type": "images",
             "--data-format": "channels_first",
         },
-        dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         docker_args=["-v", f"{env_values['DATA']}:/data"],
         wait_for_completion=True,
     )
@@ -128,7 +128,7 @@ def submit_tfrecords(c, node_count=int(env_values["CLUSTER_MAX_NODES"]), epochs=
             "--data-format": "channels_first",
         },
         node_count=node_count,
-        dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
@@ -154,7 +154,7 @@ def submit_tfrecords_local(c, epochs=1):
             "--data_type": "tfrecords",
             "--data-format": "channels_first",
         },
-        dependencies_file="TensorFlow_imagenet/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         docker_args=["-v", f"{env_values['DATA']}:/data"],
         wait_for_completion=True,
     )

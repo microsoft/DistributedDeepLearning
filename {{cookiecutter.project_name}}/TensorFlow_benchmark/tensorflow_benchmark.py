@@ -51,7 +51,7 @@ def submit_tf_benchmark(c, node_count=int(env_values["CLUSTER_MAX_NODES"])):
             "--use_fp16": "",
         },
         node_count=node_count,
-        dependencies_file="TensorFlow_benchmark/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
@@ -76,7 +76,7 @@ def submit_tf_benchmark_local(c):
             "--variable_update": "horovod",
             "--use_fp16": "",
         },
-        dependencies_file="TensorFlow_benchmark/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)

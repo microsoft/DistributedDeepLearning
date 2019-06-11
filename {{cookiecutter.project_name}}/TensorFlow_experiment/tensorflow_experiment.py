@@ -24,7 +24,7 @@ def submit_local(c):
         os.path.join(_BASE_PATH, "src"),
         "<YOUR-TRAINING-SCRIPT>",
         {"YOUR": "ARGS"},
-        dependencies_file="TensorFlow/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
@@ -46,7 +46,7 @@ def submit_remote(c):
         "<YOUR-TRAINING-SCRIPT>",
         {"YOUR": "ARGS"},
         node_count=4,
-        dependencies_file="TensorFlow/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
@@ -59,7 +59,7 @@ def submit_images(c):
     The call below will work for submitting jobs to execute on a remote cluster using GPUs.
     Notive that we are passing in a {datastore} parameter to the path. This tells the submit
     method that we want the location as mapped by the datastore to be inserted here. Upon
-    execution the appropriate path will be preappended to the training_data_path and validation_data_path.
+    execution the appropriate path will be prepended to the training_data_path and validation_data_path.
     """
     raise NotImplementedError(
         "You need to modify this call before being able to use it"
@@ -77,7 +77,7 @@ def submit_images(c):
             "--data-format": "channels_first",
         },
         node_count=4,
-        dependencies_file="TensorFlow/environment_gpu.yml",
+        dependencies_file=os.path.join(_BASE_PATH, "environment_gpu.yml"),
         wait_for_completion=True,
     )
     print(run)
