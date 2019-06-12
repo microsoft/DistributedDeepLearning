@@ -79,7 +79,7 @@ def _prepare_environment_definition(dependencies_file, distributed):
     env_def.python.conda_dependencies = conda_dep
     env_def.docker.enabled = True
     env_def.docker.gpu_support = True
-    env_def.docker.base_image = azureml.core.runconfig.DEFAULT_GPU_IMAGE
+    env_def.docker.base_image = "mcr.microsoft.com/azureml/base-gpu:intelmpi2018.3-cuda9.0-cudnn7-ubuntu16.04"
     env_def.docker.shm_size = "8g"
     env_def.environment_variables["NCCL_SOCKET_IFNAME"] = "eth0"
     env_def.environment_variables["NCCL_IB_DISABLE"] = 1
@@ -371,7 +371,7 @@ class TFExperimentCLI(ExperimentCLI):
             script_params,
             node_count=node_count,
             process_count_per_node=process_count_per_node,
-            docker_args=docker_args,
+            docker_args=docker_args
         )
         # TEMPORARY HACK: Bugs with AML necessitate the code below, once fixed remove
         estimator.conda_dependencies.remove_pip_package("horovod==0.15.2")
