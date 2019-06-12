@@ -4,7 +4,7 @@ include .dev_env
 
 cookiecutter:
 ifdef subscription_id
-	cd ../ && cookiecutter AMLDistCC --no-input \
+	cd ../ && cookiecutter DistributedDeepLearning --no-input \
 	 subscription_id=${subscription_id} \
 	 resource_group=mstestdistrg \
 	 data=/mnt/imagenet_test \
