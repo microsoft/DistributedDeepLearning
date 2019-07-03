@@ -101,13 +101,13 @@ def input_fn(
     is_training,
     data_dir,
     batch_size,
-    num_epochs=1,
+    repetitions=1,
     dtype=tf.float32,
     num_parallel_batches=1,
     parse_record_fn=parse_record,
     data_format="channels_last",
     distributed=False,
-    file_shuffle_buffer=10,
+    file_shuffle_buffer=5,
     data_shuffle_buffer=defaults.SHUFFLE_BUFFER,
 ):
     """Input function which provides batches for train or eval.
@@ -116,7 +116,7 @@ def input_fn(
         is_training: A boolean denoting whether the input is for training.
         data_dir: The directory containing the input data.
         batch_size: The number of samples per batch.
-        num_epochs: The number of epochs to repeat the dataset.
+        repetitions: The number times to repeat the dataset.
         dtype: Data type to use for images/features
         num_parallel_batches: Number of parallel batches for tf.data.
         parse_record_fn: Function to use for parsing the records.
@@ -149,7 +149,7 @@ def input_fn(
         tf.data.experimental.parallel_interleave(
             tf.data.TFRecordDataset,
             cycle_length=num_parallel_batches,
-            buffer_output_elements=10,
+            buffer_output_elements=5,
         )
     )
 
@@ -159,7 +159,7 @@ def input_fn(
         batch_size=batch_size,
         shuffle_buffer=data_shuffle_buffer,
         parse_record_fn=parse_record_fn,
-        num_epochs=num_epochs,
+        repetitions=repetitions,
         dtype=dtype,
         num_parallel_batches=num_parallel_batches,
         data_format=data_format,
@@ -171,7 +171,7 @@ def process_record_dataset(dataset,
                            batch_size,
                            shuffle_buffer,
                            parse_record_fn,
-                           num_epochs=1,
+                           repetitions=1,
                            dtype=tf.float32,
                            data_format="channels_last",
                            num_parallel_batches=1):
@@ -186,7 +186,7 @@ def process_record_dataset(dataset,
       time and use less memory.
     parse_record_fn: A function that takes a raw record and returns the
       corresponding (image, label) pair.
-    num_epochs: The number of epochs to repeat the dataset.
+    repetitions: The number of times to repeat the dataset.
     dtype: Data type to use for images/features.
     num_parallel_batches: Number of parallel batches for tf.data.
 
@@ -202,7 +202,7 @@ def process_record_dataset(dataset,
     dataset = dataset.shuffle(buffer_size=shuffle_buffer)
 
   # Repeats the dataset for the number of epochs to train.
-  dataset = dataset.repeat(num_epochs)
+  dataset = dataset.repeat(repetitions)
 
   # Parses the raw records into images and labels.
   dataset = dataset.apply(
@@ -213,6 +213,6 @@ def process_record_dataset(dataset,
           drop_remainder=False))
 
 
-  dataset = dataset.prefetch(buffer_size=1024)
+  dataset = dataset.prefetch(buffer_size=256)
 
   return dataset
