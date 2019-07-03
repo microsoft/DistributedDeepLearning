@@ -7,11 +7,13 @@ from config import load_config
 import os
 # Experiment imports {% if cookiecutter.type == "template" or cookiecutter.type == "all"%}
 import tensorflow_experiment # {%- endif -%} Template {% if cookiecutter.type == "benchmark" or cookiecutter.type == "all"%}
-import tensorflow_benchmark # {%- endif -%} Benchmark{% if cookiecutter.type == "imagenet" or cookiecutter.type == "all"%}
-import storage
-import image
+import tensorflow_benchmark # {%- endif -%} Benchmark {% if cookiecutter.type == "imagenet" or cookiecutter.type == "all"%}
 import tfrecords
-import tensorflow_imagenet  # Imagenet {% endif %}
+import tensorflow_imagenet  #  {%- endif -%} Imagenet {% if cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
+import pytorch_imagenet # {%- endif -%} PyTorch Imagenet {% if cookiecutter.type == "imagenet" or cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
+import storage 
+import image #  {%- endif -%} {% if cookiecutter.type == "pytorch_benchmark" or cookiecutter.type == "all"%}
+import pytorch_benchmark # {% endif %} PyTorch Benchmark 
 from invoke.executor import Executor
 
 logging.config.fileConfig(os.getenv("LOG_CONFIG", "logging.conf"))
@@ -192,13 +194,23 @@ namespace.add_collection(tf_exp_collection)
 tf_bench_collection = Collection.from_module(tensorflow_benchmark)
 namespace.add_collection(tf_bench_collection)
 #{%- endif -%}
-# Imagenet{% if cookiecutter.type == "imagenet" or cookiecutter.type == "all"%}
+# Imagenet {% if cookiecutter.type == "imagenet" or cookiecutter.type == "all"%}
 storage_collection = Collection.from_module(storage)
 storage_collection.add_collection(Collection.from_module(image))
 storage_collection.add_collection(Collection.from_module(tfrecords))
 tf_collection = Collection.from_module(tensorflow_imagenet)
 namespace.add_collection(tf_collection)
 namespace.add_collection(storage_collection) # {% endif %}
+
+# PyTorch Benchmark {% if cookiecutter.type == "pytorch_benchmark" or cookiecutter.type == "all"%}
+pytorch_bench_collection = Collection.from_module(pytorch_benchmark)
+namespace.add_collection(pytorch_bench_collection)
+#{%- endif %}
+
+# PyTorch Imagenet {% if cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
+pytorch_imagenet_collection = Collection.from_module(pytorch_imagenet)
+namespace.add_collection(pytorch_imagenet_collection)
+#{%- endif %}
 
 namespace.configure({
     'root_namespace': namespace,

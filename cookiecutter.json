@@ -19,7 +19,9 @@
     "all",
     "template",
     "benchmark",
-    "imagenet"
+    "imagenet",
+    "pytorch_benchmark",
+    "pytorch_imagenet"
   ],
   "region": [
     "eastus",
