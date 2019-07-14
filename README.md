@@ -14,6 +14,7 @@ This is a blank template you can use for your own distributed training projects.
 Before you get started you need a PC running Ubuntu and the following installed:  
 [Docker installed](https://docs.docker.com/install/linux/docker-ce/ubuntu/)  
 [Nvidia runtime for docker](https://github.com/NVIDIA/nvidia-container-runtime) [Required for local execution]  
+Python>=3.6  
 [Cookiecutter installed](https://cookiecutter.readthedocs.io/en/latest/)  
 [Git installed](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)  
 
