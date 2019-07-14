@@ -164,7 +164,7 @@ def _get_hooks(batch_size, is_distributed=defaults.DISTRIBUTED):
     if is_distributed:
         exps_hook = ExamplesPerSecondHook(batch_size * hvd.size())
         bcast_hook = hvd.BroadcastGlobalVariablesHook(0)
-        logger.info("Rank: {} Cluster Size {}".format(hvd.local_rank(), hvd.size()))
+        logger.info("Rank: {} Cluster Size {}".format(hvd.rank(), hvd.size()))
         return [bcast_hook, exps_hook]
     else:
         exps_hook = ExamplesPerSecondHook(batch_size)
@@ -220,7 +220,7 @@ def main(
         save_filepath: Location where the checkpoint and events files are saved
         epochs: Number of epochs to run the training for
         batch_size: Number of images to run in a mini-batch
-        max_steps: Maximum number of steps to run for training and validation. This will override epochs parameter
+        max_steps: Maximum number of steps to run for training. This will override epochs parameter
         save_checkpoints_steps: Number of steps between checkpoints
         data_format: The axis order of the matrix, channels_last NHWC or channels_first NCHW
         momentum: Momentum term for tf.train.MomentumOptimizer
@@ -235,6 +235,7 @@ def main(
 
     logger.info("Tensorflow version {}".format(tf.__version__))
     if training_data_path is None:
+        steps=None
         input_function = get_synth_input_fn(
             defaults.DEFAULT_IMAGE_SIZE,
             defaults.DEFAULT_IMAGE_SIZE,
@@ -242,7 +243,10 @@ def main(
             defaults.NUM_CLASSES,
         )
     else:
+        total_batches = (defaults.NUM_IMAGES['train'] / batch_size)
+        steps = total_batches // hvd.size() if defaults.DISTRIBUTED else total_batches
         input_function = tfrecords.input_fn if "tfrecords" in data_type else images.input_fn
+        logger.info(f"Running {steps} steps")
 
     run_config = _get_runconfig(save_checkpoints_steps=save_checkpoints_steps)
     if (defaults.DISTRIBUTED and hvd.rank() == 0) or not defaults.DISTRIBUTED:
@@ -269,7 +273,7 @@ def main(
             True,
             training_data_path,
             batch_size,
-            num_epochs=epochs,
+            repetitions=epochs+1, # Repeat the dataset one more than the epochs 
             data_format=data_format,
             num_parallel_batches=4,
             distributed=defaults.DISTRIBUTED
@@ -277,7 +281,7 @@ def main(
 
     with Timer(output=logger.info, prefix="Training") as t:
         logger.info("Training...")
-        model.train(input_fn=train_input_fn, max_steps=max_steps, hooks=hooks)
+        model.train(input_fn=train_input_fn, steps=steps, max_steps=max_steps, hooks=hooks)
 
     if max_steps is not None:
         total_images = max_steps * batch_size * num_gpus
@@ -293,14 +297,14 @@ def main(
                 False,
                 validation_data_path,
                 batch_size,
-                num_epochs=1,
+                repetitions=1,
                 data_format=data_format,
                 num_parallel_batches=4,
             )
 
         with Timer(output=logger.info, prefix="Testing"):
             logger.info("Testing...")
-            model.evaluate(input_fn=validation_input_fn, steps=max_steps)
+            model.evaluate(input_fn=validation_input_fn)
 
 
 if __name__ == "__main__":

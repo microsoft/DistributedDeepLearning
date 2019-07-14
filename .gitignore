@@ -103,8 +103,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-*/TensorFlow_benchmark/src/*
-
 */.vscode/*
 .vscode/settings.json
 

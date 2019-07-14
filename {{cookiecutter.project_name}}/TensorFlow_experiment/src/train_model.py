@@ -73,6 +73,7 @@ def model_fn(features, labels, mode, params):
     Returns:
         tf.estimator.EstimatorSpec: Estimator specification
     """
+    model = build_network(features, mode, params)
     return None
 
 
