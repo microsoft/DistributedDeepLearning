@@ -5,10 +5,15 @@ The project contains the following:
 #### Tensorflow Benchmark 
 This is a demo template that allows you to easily run [tf_cnn_benchmarks](https://github.com/tensorflow/benchmarks/tree/master/scripts/tf_cnn_benchmarks) on Azure ML. This is a great way to test performance as well as compare to other platforms  
 #### Tensorflow Imagenet 
-This is another demo template that shows you how to train a ResNet50 model using Imagenet on Azure. We include scripts for processing the Imagenet data, transforming them to TF Records as well as leveraging AzCopy to quickly upload the data to the cloud.   
+This is another demo template that shows you how to train a ResNet50 model using Imagenet on Azure. We include scripts for processing the Imagenet data, transforming them to TF Records as well as leveraging AzCopy to quickly upload the data to the cloud.
 #### Tensorflow Template 
 This is a blank template you can use for your own distributed training projects. It allows you to leverage all the tooling built around the previous two demos to speed up the time it takes to run your model in a distributed fashion on Azure.  
-
+#### PyTorch Benchmark 
+This is a demo template that allows you to easily run a simple PyTorch benchmarking script on Azure ML. This is a great way to test performance as well as compare to other platforms
+#### PyTorch Imagenet 
+This is another demo template that shows you how to train a ResNet50 model using Imagenet on Azure. We include scripts for processing the Imagenet data as well as leveraging AzCopy to quickly upload the data to the cloud.  
+#### PyTorch Template 
+This is a blank template you can use for your own distributed training projects. It allows you to leverage all the tooling built around the previous two demos to speed up the time it takes to run your model in a distributed fashion on Azure.
 
 # Prerequisites
 Before you get started you need a PC running Ubuntu and the following installed:  
@@ -91,7 +96,7 @@ make run
 This will put you in an environment inside your container in a tmux session (for a tutorial on tmux see [here](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/)). The tmux control key has been mapped to **ctrl+a** rather than the standard ctrl+b so as not to interfere with outer tmux session if you are already a tmux user. You can alter this in the tmux.conf file in the Docker folder. The docker container will map the location you launched it from to the location /workspace inside the docker container. Therefore you can edit files outside of the container in the project folder and the changes will be reflected inside the container.
 
 ## Imagenet data
-If you have selected **all** or **imagenet** in the type question during cookiecutter invocation then you will need to have **ILSVRC2012_img_train.tar** and **ILSVRC2012_img_val.tar** present in the direcotry you specified as your data directory. Go to the [download page](http://www.image-net.org/download-images) (you may need to register an account), and find the page for ILSVRC2012. You will need to download the two files mentioned earlier.
+If you have selected **all**, **tensorflow_imagenet** or **pytorch_imagenet** in the type question during cookiecutter invocation then you will need to have **ILSVRC2012_img_train.tar** and **ILSVRC2012_img_val.tar** present in the direcotry you specified as your data directory. Go to the [download page](http://www.image-net.org/download-images) (you may need to register an account), and find the page for ILSVRC2012. You will need to download the two files mentioned earlier.
 
 ## Template selection
 Based on the option you selected for **type** during the cookiecutter invocation you will get all or one of the options below. Cookiecutter will create your project folder which will contain the tempalte folders. When inside your project folder make sure you have run the **make build** and **make run** commands as mentioned in _building environment_ section above. Once you run the run command you will be greeted by a prompt, this is now your control plane. First you will need to set everything up. To do this run
@@ -115,7 +120,7 @@ inv tf-benchmark.submit.remote.synthetic
 Note that this will create the cluster if it wasn't created earlier and create the appropriate environment.
 
 #### Tensorflow Imagenet
-This is the second demo template that will train a ResNet50 model on imagenet. It allows the options of using synthetic data, image data as well as tfrecords. To use this you must either select **imagenet** or **all** when cookiecutter asks what type of project you want to create.
+This is the second demo template that will train a ResNet50 model on imagenet. It allows the options of using synthetic data, image data as well as tfrecords. To use this you must either select **tensorflow_imagenet** or **all** when cookiecutter asks what type of project you want to create.
 The run things locally using synthetic data simply run:
 ```
 inv tf-imagenet.submit.local.synthetic
@@ -129,6 +134,35 @@ inv tf-imagenet.submit.remote.tfrecords
 This only covers a small number of commands, to see the full list of commands simply run inv --list.
 #### Tensorflow Experiment
 This is the option that you should use if you want to run your own training script. It is up to you to add the appropriate training scripts and modify the tensorflow_experiment.py file to run the appropriate commands. If you want to see how to invoke things simply look at the other examples.
+
+
+#### Pytorch Benchmark
+This is a demo template allows you to easily run a simple PyTorch benchmarking script on Azure ML. To use this you must either select benchmark or all when invoking cookiecutter. 
+Once setup is complete then simply run:
+```bash
+inv pytorch-benchmark.submit.local.synthetic
+```
+to run things locally on a single GPU. Note that the first time you run things you will have to build the environment.
+To run things on a cluster simply run:
+```bash
+inv pytorch-benchmark.submit.remote.synthetic
+```
+Note that this will create the cluster if it wasn't created earlier and create the appropriate environment.
+
+#### PyTorch Imagenet
+This is the second demo template that will train a ResNet50 model on imagenet. It allows the options of using synthetic data or image data. To use this you must either select **pytorch_imagenet** or **all** when cookiecutter asks what type of project you want to create.
+The run things locally using synthetic data simply run:
+```
+inv pytorch-imagenet.submit.local.synthetic
+```
+
+To run things on a remote cluster with real data in tfrecords format simply run:
+```
+inv pytorch-imagenet.submit.remote.tfrecords
+```
+#### Pytorch Experiment
+This is the option that you should use if you want to run your own training script. It is up to you to add the appropriate training scripts and modify the pytorch_experiment.py file to run the appropriate commands. If you want to see how to invoke things simply look at the other examples.
+
 
 # Architecture
 Below is a diagram that shows how the project is set up.
@@ -174,6 +208,26 @@ The original project structure is as shown below.
    │  ├── storage.py <-- Invoke module for using Azure storage
    │  └── tfrecords.py <-- Invoke module for working with tf records
    ├── tasks.py <-- Main invoke module
+   ├── PyTorch_benchmark<-- Template for running PyTorch benchmarks
+   │  ├── environment_cpu.yml
+   │  ├── environment_gpu.yml<-- Conda specification file used by Azure ML to create environment to run project in
+   │  ├── pytorch_benchmark.py<-- Invoke module for running benchmarks
+   │  └── src
+   │     └── pytorch_synthetic_benchmark.py
+   ├── PyTorch_imagenet
+   │  ├── environment_cpu.yml
+   │  ├── environment_gpu.yml<-- Conda specification file used by Azure ML to create environment to run project in
+   │  ├── pytorch_imagenet.py<-- Invoke module for running benchmarks
+   │  └── src
+   │     ├── imagenet_pytorch_horovod.py
+   │     ├── logging.conf
+   │     └── timer.py
+   ├── PyTorch_experiment<-- PyTorch distributed training template [Put your code here]
+   │  ├── environment_cpu.yml
+   │  ├── environment_gpu.yml<-- Conda specification file used by Azure ML to create environment to run project in
+   │  ├── pytorch_experiment.py<-- Invoke module for running benchmarks
+   │  └── src
+   │     └── train_model.py
    ├── TensorFlow_benchmark <-- Template for running Tensorflow benchmarks
    │  ├── environment_cpu.yml 
    │  ├── environment_gpu.yml <-- Conda specification file used by Azure ML to create environment to run project in
@@ -222,6 +276,12 @@ inv --list
   select-subscription                        Select Azure subscription to use
   setup                                      Setup the environment and process the imagenet data
   tensorboard                                Runs tensorboard in a seperate tmux session
+  pytorch-benchmark.submit.local.synthetic    Submit PyTorch training job using synthetic data for local execution
+  pytorch-benchmark.submit.remote.synthetic   Submit PyTorch training job using synthetic data to remote cluster
+  pytorch-imagenet.submit.local.images        Submit PyTorch training job using real imagenet data for local execution
+  pytorch-imagenet.submit.local.synthetic     Submit PyTorch training job using synthetic imagenet data for local execution
+  pytorch-imagenet.submit.remote.images       Submit PyTorch training job using real imagenet data to remote cluster
+  pytorch-imagenet.submit.remote.synthetic    Submit PyTorch training job using synthetic imagenet data to remote cluster
   storage.create-resource-group
   storage.store-key                          Retrieves premium storage account key from Azure and stores it in .env file
   storage.image.create-container             Creates container based on the parameters found in the .env file
