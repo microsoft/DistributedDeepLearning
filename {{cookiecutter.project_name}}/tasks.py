@@ -12,7 +12,8 @@ import tfrecords
 import tensorflow_imagenet  #  {%- endif -%} Imagenet {% if cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
 import pytorch_imagenet # {%- endif -%} PyTorch Imagenet {% if cookiecutter.type == "imagenet" or cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
 import storage 
-import image #  {%- endif -%} {% if cookiecutter.type == "pytorch_benchmark" or cookiecutter.type == "all"%}
+import image #  {%- endif -%} {% if cookiecutter.type == "pytorch_experiment" or cookiecutter.type == "all"%}
+import pytorch_experiment #  {%- endif -%} {% if cookiecutter.type == "pytorch_benchmark" or cookiecutter.type == "all"%}
 import pytorch_benchmark # {% endif %} PyTorch Benchmark 
 from invoke.executor import Executor
 
@@ -39,7 +40,8 @@ def _prompt_sub_id_selection(c):
     from prompt_toolkit import prompt
 
     results = c.run(f"az account list", pty=True, hide="out")
-    sub_dict = json.loads(results.stdout)
+    parsestr = "["+results.stdout[1:-7]+"]" #TODO: Figure why this is necessary
+    sub_dict = json.loads(parsestr)
     sub_list = [
         {"Index": i, "Name": sub["name"], "id": sub["id"]}
         for i, sub in enumerate(sub_dict)
@@ -210,6 +212,11 @@ namespace.add_collection(pytorch_bench_collection)
 # PyTorch Imagenet {% if cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
 pytorch_imagenet_collection = Collection.from_module(pytorch_imagenet)
 namespace.add_collection(pytorch_imagenet_collection)
+#{%- endif %}
+
+# PyTorch Experiment {% if cookiecutter.type == "pytorch_experiment" or cookiecutter.type == "all"%}
+pytorch_exp_collection = Collection.from_module(pytorch_experiment)
+namespace.add_collection(pytorch_exp_collection)
 #{%- endif %}
 
 namespace.configure({
