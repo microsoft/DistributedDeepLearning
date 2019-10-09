@@ -15,7 +15,7 @@ from azureml.core.conda_dependencies import (
 )
 from azureml.core.runconfig import EnvironmentDefinition
 from azureml.tensorboard import Tensorboard
-from azureml.train.dnn import TensorFlow
+from azureml.train.dnn import TensorFlow, PyTorch
 from config import load_config
 from toolz import curry, pipe
 from pprint import pformat
@@ -71,7 +71,7 @@ def _create_cluster(
     return compute_target
 
 
-def _prepare_environment_definition(dependencies_file, distributed):
+def _prepare_environment_definition(base_image, dependencies_file, distributed):
     logger = logging.getLogger(__name__)
     env_def = EnvironmentDefinition()
     conda_dep = CondaDependencies(conda_dependencies_file_path=dependencies_file)
@@ -79,7 +79,7 @@ def _prepare_environment_definition(dependencies_file, distributed):
     env_def.python.conda_dependencies = conda_dep
     env_def.docker.enabled = True
     env_def.docker.gpu_support = True
-    env_def.docker.base_image = "mcr.microsoft.com/azureml/base-gpu:intelmpi2018.3-cuda9.0-cudnn7-ubuntu16.04"
+    env_def.docker.base_image = base_image
     env_def.docker.shm_size = "8g"
     env_def.environment_variables["NCCL_SOCKET_IFNAME"] = "eth0"
     env_def.environment_variables["NCCL_IB_DISABLE"] = 1
@@ -104,16 +104,18 @@ def _create_estimator(
     entry_script,
     compute_target,
     script_params,
+    base_image,
     node_count=_CLUSTER_MAX_NODES,
     process_count_per_node=4,
     docker_args=(),
 ):
     logger = logging.getLogger(__name__)
+    logger.debug(f"Base image {base_image}")
     logger.debug(f"Loading dependencies from {dependencies_file}")
 
     # If the compute target is "local" then don't run distributed
     distributed = not (isinstance(compute_target, str) and compute_target == "local")
-    env_def = _prepare_environment_definition(dependencies_file, distributed)
+    env_def = _prepare_environment_definition(base_image, dependencies_file, distributed)
     env_def.docker.arguments.extend(list(docker_args))
 
     estimator = estimator_class(
@@ -362,6 +364,8 @@ class TFExperimentCLI(ExperimentCLI):
         wait_for_completion,
     ):
         self._logger.debug(script_params)
+        base_image = "mcr.microsoft.com/azureml/base-gpu:intelmpi2018.3-cuda9.0-cudnn7-ubuntu16.04"
+
         estimator = _create_estimator(
             TensorFlow,
             dependencies_file,
@@ -369,6 +373,7 @@ class TFExperimentCLI(ExperimentCLI):
             entry_script,
             cluster,
             script_params,
+            base_image,
             node_count=node_count,
             process_count_per_node=process_count_per_node,
             docker_args=docker_args
@@ -380,6 +385,139 @@ class TFExperimentCLI(ExperimentCLI):
         )
         estimator.conda_dependencies.add_pip_package("tensorflow-gpu==1.12.0")
         estimator.conda_dependencies.add_pip_package("horovod==0.15.2")
+
+        self._logger.debug(estimator.conda_dependencies.__dict__)
+        run = self._experiment.submit(estimator)
+        if wait_for_completion:
+            run.wait_for_completion(show_output=True)
+        return run
+
+    def _complete_datastore(self, script_params):
+        def _replace(value):
+            if isinstance(value, str) and "{datastore}" in value:
+                data_path = value.replace("{datastore}/", "")
+                return self.datastore.path(data_path).as_mount()
+            else:
+                return value
+
+        return {key: _replace(value) for key, value in script_params.items()}
+
+
+class PyTorchExperimentCLI(ExperimentCLI):
+    """Creates Experiment object that can be used to create clusters and submit experiments
+    
+    Returns:
+        PyTorchExperimentCLI: Experiment object
+    """
+
+    def submit_local(
+        self,
+        project_folder,
+        entry_script,
+        script_params,
+        dependencies_file=_DEPENDENCIES_FILE,
+        wait_for_completion=True,
+        docker_args=(),
+    ):
+        """Submit experiment for local execution
+        
+        Args:
+            project_folder (string): Path of you source files for the experiment
+            entry_script (string): The filename of your script to run. Must be found in your project_folder
+            script_params (dict): Dictionary of script parameters
+            dependencies_file (string, optional): The location of your environment.yml to use to create the
+                                                  environment your training script requires. 
+                                                  Defaults to _DEPENDENCIES_FILE.
+            wait_for_completion (bool, optional): Whether to block until experiment is done. Defaults to True.
+            docker_args (tuple, optional): Docker arguments to pass. Defaults to ().
+        """
+        self._logger.info("Running in local mode")
+        self._submit(
+            dependencies_file,
+            project_folder,
+            entry_script,
+            "local",
+            script_params,
+            1,
+            1,
+            docker_args,
+            wait_for_completion,
+        )
+
+    def submit(
+        self,
+        project_folder,
+        entry_script,
+        script_params,
+        dependencies_file=_DEPENDENCIES_FILE,
+        node_count=_CLUSTER_MAX_NODES,
+        process_count_per_node=4,
+        wait_for_completion=True,
+        docker_args=(),
+    ):
+        """Submit experiment for remote execution on AzureML clusters
+        
+        Args:
+            project_folder (string): Path of you source files for the experiment
+            entry_script (string): The filename of your script to run. Must be found in your project_folder
+            script_params (dict): Dictionary of script parameters
+            dependencies_file (string, optional): The location of your environment.yml to use to
+                                                  create the environment your training script requires. 
+                                                  Defaults to _DEPENDENCIES_FILE.
+            node_count (int, optional): [description]. Defaults to _CLUSTER_MAX_NODES.
+            process_count_per_node (int, optional): Number of precesses to run on each node. 
+                                                    Usually should be the same as the number of GPU for GPU exeuction. 
+                                                    Defaults to 4.
+            wait_for_completion (bool, optional): Whether to block until experiment is done. Defaults to True.
+            docker_args (tuple, optional): Docker arguments to pass. Defaults to ().
+        
+        Returns:
+            azureml.core.Run: AzureML Run object
+        """
+        self._logger.debug(script_params)
+
+        transformed_params = self._complete_datastore(script_params)
+        self._logger.debug("Transformed script params")
+        self._logger.debug(transformed_params)
+
+        return self._submit(
+            dependencies_file,
+            project_folder,
+            entry_script,
+            self.cluster,
+            transformed_params,
+            node_count,
+            process_count_per_node,
+            docker_args,
+            wait_for_completion,
+        )
+
+    def _submit(
+        self,
+        dependencies_file,
+        project_folder,
+        entry_script,
+        cluster,
+        script_params,
+        node_count,
+        process_count_per_node,
+        docker_args,
+        wait_for_completion,
+    ):
+        self._logger.debug(script_params)
+        base_image = "mcr.microsoft.com/azureml/base-gpu:openmpi3.1.2-cuda9.0-cudnn7-ubuntu16.04"
+        estimator = _create_estimator(
+            PyTorch,
+            dependencies_file,
+            project_folder,
+            entry_script,
+            cluster,
+            script_params,
+            base_image,
+            node_count=node_count,
+            process_count_per_node=process_count_per_node,
+            docker_args=docker_args,
+        )
 
         self._logger.debug(estimator.conda_dependencies.__dict__)
         run = self._experiment.submit(estimator)

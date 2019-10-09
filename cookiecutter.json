@@ -17,9 +17,12 @@
   "container_registry": "dockerhub",
   "type": [
     "all",
-    "template",
-    "benchmark",
-    "imagenet"
+    "tesnorflow_template",
+    "tesnorflow_benchmark",
+    "tesnorflow_imagenet",
+    "pytorch_benchmark",
+    "pytorch_imagenet",
+    "pytorch_template"
   ],
   "region": [
     "eastus",

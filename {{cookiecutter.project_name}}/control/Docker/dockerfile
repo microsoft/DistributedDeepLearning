@@ -87,6 +87,12 @@ ENV PYTHONPATH /workspace/TensorFlow_benchmark:$PYTHONPATH
 # imagenet {% if cookiecutter.type == "imagenet" or cookiecutter.type == "all"%}
 ENV PYTHONPATH /workspace/TensorFlow_imagenet:$PYTHONPATH 
 # ------- {% endif %}
+# pytorch benchmark {% if cookiecutter.type == "pytorch_benchmark" or cookiecutter.type == "all"%}
+ENV PYTHONPATH /workspace/PyTorch_benchmark:$PYTHONPATH 
+# ------- {% endif %}
+# pytorch imagenet {% if cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
+ENV PYTHONPATH /workspace/PyTorch_imagenet:$PYTHONPATH 
+# ------- {% endif %}
 # Completion script
 COPY bash.completion /etc/bash_completion.d/
 RUN echo "source /etc/bash_completion.d/bash.completion" >> /root/.bashrc

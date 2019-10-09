@@ -16,11 +16,15 @@ def _remove_directories(*directories):
 def _copy_env_file():
     shutil.move("_dotenv_template", ".env")
 
+_ALL_DIRECTORIES = "TensorFlow_benchmark",  "TensorFlow_imagenet", "TensorFlow_experiment",  "PyTorch_benchmark",  "PyTorch_imagenet", "PyTorch_experiment"
 
 _CHOICES_DICT = {
-    "template":  ("TensorFlow_benchmark",  "TensorFlow_imagenet"),
-    "benchmark": ("TensorFlow_experiment", "TensorFlow_imagenet"),
-    "imagenet":  ("TensorFlow_benchmark",  "TensorFlow_experiment")
+    "tensorflow_template":  filter(lambda x: x.lower()!="tensorflow_experiment", _ALL_DIRECTORIES),
+    "tensorflow_benchmark": filter(lambda x: x.lower()!="tensorflow_benchmark", _ALL_DIRECTORIES),
+    "tensorflow_imagenet":  filter(lambda x: x.lower()!="tensorflow_imagenet", _ALL_DIRECTORIES),
+    "pytorch_imagenet":  filter(lambda x: x.lower()!="pytorch_imagenet", _ALL_DIRECTORIES),
+    "pytorch_benchmark":  filter(lambda x: x.lower()!="pytorch_benchmark", _ALL_DIRECTORIES),
+    "pytorch_template":  filter(lambda x: x.lower()!="pytorch_experiment", _ALL_DIRECTORIES),
 }
 
 if __name__ == "__main__":
