@@ -17,9 +17,9 @@
   "container_registry": "dockerhub",
   "type": [
     "all",
-    "tesnorflow_template",
-    "tesnorflow_benchmark",
-    "tesnorflow_imagenet",
+    "tensorflow_template",
+    "tensorflow_benchmark",
+    "tensorflow_imagenet",
     "pytorch_benchmark",
     "pytorch_imagenet",
     "pytorch_template"

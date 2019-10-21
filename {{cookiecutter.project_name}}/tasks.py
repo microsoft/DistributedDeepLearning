@@ -5,12 +5,12 @@ from dotenv import find_dotenv, set_key
 from invoke.exceptions import Failure
 from config import load_config
 import os
-# Experiment imports {% if cookiecutter.type == "template" or cookiecutter.type == "all"%}
-import tensorflow_experiment # {%- endif -%} Template {% if cookiecutter.type == "benchmark" or cookiecutter.type == "all"%}
-import tensorflow_benchmark # {%- endif -%} Benchmark {% if cookiecutter.type == "imagenet" or cookiecutter.type == "all"%}
+# Experiment imports {% if cookiecutter.type == "tensorflow_template" or cookiecutter.type == "all"%}
+import tensorflow_experiment # {%- endif -%} Template {% if cookiecutter.type == "tensorflow_benchmark" or cookiecutter.type == "all"%}
+import tensorflow_benchmark # {%- endif -%} Benchmark {% if cookiecutter.type == "tensorflow_imagenet" or cookiecutter.type == "all"%}
 import tfrecords
 import tensorflow_imagenet  #  {%- endif -%} Imagenet {% if cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
-import pytorch_imagenet # {%- endif -%} PyTorch Imagenet {% if cookiecutter.type == "imagenet" or cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
+import pytorch_imagenet # {%- endif -%} PyTorch Imagenet {% if cookiecutter.type == "tensorflow_imagenet" or cookiecutter.type == "pytorch_imagenet" or cookiecutter.type == "all"%}
 import storage 
 import image #  {%- endif -%} {% if cookiecutter.type == "pytorch_experiment" or cookiecutter.type == "all"%}
 import pytorch_experiment #  {%- endif -%} {% if cookiecutter.type == "pytorch_benchmark" or cookiecutter.type == "all"%}
@@ -19,7 +19,7 @@ from invoke.executor import Executor
 
 logging.config.fileConfig(os.getenv("LOG_CONFIG", "logging.conf"))
 env_values = load_config()
-# Imagenet switch variable {% if cookiecutter.type != "imagenet" and cookiecutter.type != "all"%}
+# Imagenet switch variable {% if cookiecutter.type != "tensorflow_imagenet" and cookiecutter.type != "all" and cookiecutter.type != "pytorch_imagenet"%}
 _USE_IMAGENET = False # Don't use imagenet data {% else %}
 _USE_IMAGENET = True # Use imagenet data {% endif %}
 
@@ -188,15 +188,15 @@ namespace = Collection(
     experiments,
 )
 
-# Experiment {% if cookiecutter.type == "template" or cookiecutter.type == "all"%}
+# Experiment {% if cookiecutter.type == "tensorflow_template" or cookiecutter.type == "all"%}
 tf_exp_collection = Collection.from_module(tensorflow_experiment)
 namespace.add_collection(tf_exp_collection)
 #{%- endif -%}
-# Benchmark {% if cookiecutter.type == "benchmark" or cookiecutter.type == "all"%}
+# Benchmark {% if cookiecutter.type == "tensorflow_benchmark" or cookiecutter.type == "all"%}
 tf_bench_collection = Collection.from_module(tensorflow_benchmark)
 namespace.add_collection(tf_bench_collection)
 #{%- endif -%}
-# Imagenet {% if cookiecutter.type == "imagenet" or cookiecutter.type == "all"%}
+# Imagenet {% if cookiecutter.type == "tensorflow_imagenet" or cookiecutter.type == "all"%}
 storage_collection = Collection.from_module(storage)
 storage_collection.add_collection(Collection.from_module(image))
 storage_collection.add_collection(Collection.from_module(tfrecords))
